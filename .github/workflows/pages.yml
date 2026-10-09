@@ -34,7 +34,7 @@ jobs:
           node --check backend-preload.js
           node --check family-v2.js
           node --check stability-fixes.js
-          node --check family-platform.js
+          node --check family-platform-stable.js
           node --check family-v4.js
           node --check family-v5.js
           node --check sw.js
