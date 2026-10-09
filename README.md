@@ -1,12 +1,12 @@
 # Family Heritage Tree
 
-A bilingual (English / বাংলা) interactive family-history website for the **Nayeb Chowdhury** lineage.
+A bilingual (English / বাংলা) interactive family-history platform for the **Nayeb Chowdhury** lineage.
 
 The connected tree begins:
 
 **Nayeb Chowdhury → Chan Gazi Hawladar → Mohabbat Ali Munsir + Abdullah Chamra → descendants**
 
-## Current features
+## Family-tree experience
 
 - One connected parent → child family tree
 - English / Bangla language switch
@@ -18,51 +18,80 @@ The connected tree begins:
 - Father and mother shown separately when recorded
 - Spouses and multiple marriages
 - Children and siblings in profiles
-- Lineage breadcrumbs
-- Direct shareable person links
-- Focus-on-person / focus-on-branch workflow
+- Lineage breadcrumbs and shareable person links
 - Generation navigation
-- Relationship finder with the recorded lineage path
+- Relationship finder
 - **Find My Family** gathering mode
 - Family Gallery (photo-ready)
-- Suggest / correct family information workflow
-- Suggestions can be saved locally, shared from a phone, or opened as a pre-filled GitHub issue
-- Local Admin Tools with suggestion review, data audit and JSON export
-- Responsive mobile layout
-- Print-friendly styling
+- Full-tree and person-profile printing
+- CSV export and update template
+- Installable/offline web-app support
+- Gathering QR code
 
-## Adding richer person information
+## V5 shared family database
 
-Existing person objects can optionally include these fields. The interface will automatically use them when present:
+The repository now includes an optional Supabase-backed central database layer.
+
+When `backend-config.js` is connected to a Supabase project, the website gains:
+
+- shared family correction submissions from any relative;
+- private magic-link admin login;
+- an admin allow-list protected by Postgres Row Level Security;
+- pending / approved / rejected review workflow;
+- official family-tree publishing from the browser;
+- immutable version history and restore;
+- structured approval for simple corrections;
+- official person editor for names, dates, locations, occupation and family stories;
+- add-child, add-spouse and new-marriage-branch tools;
+- approved family-photo upload to Supabase Storage;
+- audit-log records for publishing and review actions;
+- **This is me** claim submissions;
+- automatic public sync to the newest published family snapshot.
+
+If Supabase is unavailable or not yet configured, the existing static tree remains the safe fallback.
+
+## Safe versioned publishing
+
+V5 stores each official tree as a versioned JSON snapshot rather than destructively overwriting the previous tree. Public visitors load the newest published snapshot. Older versions remain available to an authenticated family admin and can be restored as a new version.
+
+A cached official snapshot is applied before the visual renderer starts, so the normal family-tree UI can continue using the same tested rendering engine.
+
+## Supabase setup
+
+See **`SUPABASE_SETUP.md`** and **`supabase/schema.sql`**.
+
+The only browser credentials used are the Supabase **Project URL** and **publishable/anon key**. Never place a Supabase `service_role` key in this repository or browser code.
+
+## Rich person information
+
+Person objects can include optional fields such as:
 
 ```js
 {
   id: 'example-person',
   en: 'Example Person',
   bn: 'উদাহরণ ব্যক্তি',
-  photoUrl: 'photos/example-person.jpg',
-  birthEn: '1975',
-  birthBn: '১৯৭৫',
-  deathEn: '',
-  deathBn: '',
+  photoUrl: 'https://...',
+  birth: '1975',
+  death: '',
   locationEn: 'Family village / city',
   locationBn: 'পারিবারিক গ্রাম / শহর',
   occupationEn: 'Occupation',
-  occupationBn: 'পেশা'
+  occupationBn: 'পেশা',
+  storyEn: 'Family history or biography',
+  storyBn: 'পারিবারিক ইতিহাস বা জীবনী'
 }
 ```
 
-A photo can also use `photo` or `image`; `photoUrl` is preferred.
+The V5 admin editor can publish these fields without manually editing `data.js` once the shared database is connected.
 
-## Suggestions and admin tools
+## Security model
 
-This site is hosted on GitHub Pages, so it does not have a private database server. Family suggestions therefore **do not automatically edit the official tree**. A suggestion may be:
-
-1. saved on the current browser/device,
-2. shared using the phone's share sheet, or
-3. opened as a pre-filled GitHub issue for review.
-
-The Admin Tools page is a **local browser utility**, not a secure admin login. It can review suggestions saved on that device and export family-tree snapshots as JSON.
+- Public visitors can read only published family snapshots.
+- Public visitors can submit corrections but cannot read the submission queue.
+- Only authenticated emails listed in `family_admins` can review submissions, publish versions, or upload approved media.
+- Database permissions are enforced with Row Level Security, not only hidden UI controls.
+- Approved images are served from the public `family-media` bucket; upload/change/delete operations remain admin-only.
 
 ## Run locally
 
@@ -76,4 +105,4 @@ Then visit `http://localhost:8000`.
 
 ## Publish
 
-GitHub Actions deploys the static site to GitHub Pages from the `main` branch. Pages deployments are queued rather than cancelling an active publish, which avoids overlapping-deployment errors.
+GitHub Actions deploys the site to GitHub Pages from the `main` branch. Pages deployments are queued rather than cancelling an active publish.
