@@ -1,0 +1,5 @@
+const CACHE='family-tree-v4';
+const CORE=['./','./index.html','./family-v2.css?v=5','./stability-fixes.css?v=3','./family-v3.css?v=1','./family-v4.css?v=1','./data.js','./corrections.js','./final-fixes.js','./family-v2.js?v=5','./stability-fixes.js?v=3','./family-platform.js?v=1','./family-v4.js?v=1','./manifest.webmanifest','./family-tree-icon.svg'];
+self.addEventListener('install',e=>e.waitUntil(caches.open(CACHE).then(c=>c.addAll(CORE)).then(()=>self.skipWaiting())));
+self.addEventListener('activate',e=>e.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim())));
+self.addEventListener('fetch',e=>{if(e.request.method!=='GET')return;e.respondWith(fetch(e.request).then(r=>{const clone=r.clone();caches.open(CACHE).then(c=>c.put(e.request,clone));return r;}).catch(()=>caches.match(e.request).then(r=>r||caches.match('./index.html'))));});
