@@ -3,68 +3,60 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="description" content="Bilingual family heritage tree for the Nayeb Chowdhury lineage." />
+  <meta name="description" content="Bilingual connected family tree for the Nayeb Chowdhury lineage." />
+  <meta name="theme-color" content="#f7f8fb" />
   <title>Family Heritage Tree</title>
-  <link rel="stylesheet" href="styles.css" />
-  <link rel="stylesheet" href="clarity.css" />
+  <link rel="stylesheet" href="unified.css" />
 </head>
 <body>
   <header class="topbar">
     <a class="brand" href="#top" aria-label="Family tree home">
       <span class="brand-mark">FT</span>
-      <span><strong data-i18n="brandTitle">Family Heritage Tree</strong><small data-i18n="brandSub">Nayeb Chowdhury lineage</small></span>
+      <span><strong>Family Heritage Tree</strong><small>Nayeb Chowdhury lineage</small></span>
     </a>
-    <div class="header-actions">
-      <button class="icon-btn" id="expandAllBtn" type="button" data-i18n="expandAll">Expand all</button>
-      <div class="language-switch" role="group" aria-label="Language selector">
-        <button class="lang-btn active" type="button" data-lang="en">English</button>
-        <button class="lang-btn" type="button" data-lang="bn">বাংলা</button>
-      </div>
+    <div class="lang-switch" role="group" aria-label="Language selector">
+      <button class="lang-btn active" type="button" data-lang="en">English</button>
+      <button class="lang-btn" type="button" data-lang="bn">বাংলা</button>
     </div>
   </header>
 
   <main id="top">
-    <section class="hero">
-      <div class="hero-copy">
-        <span class="eyebrow" data-i18n="eyebrow">Family gathering edition</span>
-        <h1 data-i18n="heroTitle">Our Family Heritage</h1>
-        <p data-i18n="heroText">A clear, bilingual family tree showing who belongs to which branch, spouses, children and later generations.</p>
+    <section class="intro">
+      <div>
+        <h1 id="pageTitle">Our Family Tree</h1>
+        <p id="pageSubtitle">One connected family tree from Nayeb Chowdhury through every recorded generation.</p>
       </div>
-      <div class="hero-tools">
-        <label class="search-wrap">
-          <span class="sr-only" data-i18n="searchLabel">Search family member</span>
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m21 21-4.35-4.35m1.35-5.65a7 7 0 1 1-14 0 7 7 0 0 1 14 0Z"/></svg>
-          <input id="searchInput" type="search" autocomplete="off" placeholder="Search any name…" />
-        </label>
-        <button id="clearSearch" class="ghost-btn hidden" type="button" data-i18n="clear">Clear</button>
+      <p class="source-note" id="sourceNote">Family lineage arranged from the supplied family record.</p>
+    </section>
+
+    <section class="controls" aria-label="Tree controls">
+      <label class="search">
+        <input id="searchInput" type="search" autocomplete="off" placeholder="Search any family member…" />
+        <button id="clearSearch" class="clear-search hidden" type="button" aria-label="Clear search">×</button>
+      </label>
+      <button id="expandAllBtn" class="tool-btn" type="button">Expand all</button>
+      <button id="fitBtn" class="tool-btn" type="button">Fit tree</button>
+      <div class="zoom-group" aria-label="Zoom controls">
+        <button id="zoomOut" type="button" aria-label="Zoom out">−</button>
+        <span id="zoomReadout" class="zoom-readout">78%</span>
+        <button id="zoomIn" type="button" aria-label="Zoom in">+</button>
       </div>
     </section>
 
-    <section class="legend-section" aria-label="Generation legend">
-      <div class="legend" id="legend"></div>
-      <p class="source-note" data-i18n="sourceNote">Compiled from the supplied family lineage document. Names are preserved from that source and transliterated consistently for the English view.</p>
-    </section>
+    <div class="legend" id="legend"></div>
 
-    <section class="ancestry-intro section-shell">
-      <div class="section-heading"><div><span class="section-kicker" data-i18n="ancestralRoot">Ancestral root</span><h2 data-i18n="startingPoint">Starting point of the recorded lineage</h2></div></div>
-      <div id="rootTrail" class="root-trail"></div>
+    <section id="familyCanvas" class="canvas-shell" aria-label="Interactive family tree canvas">
+      <div id="treeZoom" class="tree-zoom">
+        <div id="treeHost"></div>
+      </div>
     </section>
-
-    <section class="section-shell primary-section" id="mohabbat-section">
-      <div class="section-heading sticky-heading"><div><span class="section-kicker" data-i18n="mainBranch">Main branch</span><h2 id="mohabbatTitle">Mohabbat Ali Munsir family</h2></div><span class="branch-pill primary" data-i18n="primaryFocus">Primary display</span></div>
-      <div id="mohabbatTree" class="tree-board"></div>
-    </section>
-
-    <section class="section-shell secondary-section" id="abdullah-section">
-      <div class="section-heading"><div><span class="section-kicker" data-i18n="secondBranch">Related branch</span><h2 id="abdullahTitle">Abdullah Chamra family</h2></div><span class="branch-pill secondary" data-i18n="compactBranch">Compact branch</span></div>
-      <div id="abdullahTree" class="tree-board compact"></div>
-    </section>
-
-    <section class="section-shell help-section"><div class="help-card"><div><span class="section-kicker" data-i18n="howToRead">How to read this tree</span><h2 data-i18n="guideTitle">Every card tells you exactly where a person belongs.</h2></div><div class="guide-grid"><div><span class="guide-icon">↓</span><strong data-i18n="guideParent">Connector</strong><p data-i18n="guideParentText">The line above a card points to that person’s parent.</p></div><div><span class="guide-icon">♥</span><strong data-i18n="guideSpouse">Spouse</strong><p data-i18n="guideSpouseText">Spouses are listed inside the same family card, including multiple marriages when recorded.</p></div><div><span class="guide-icon">●</span><strong data-i18n="guideGeneration">Generation colour</strong><p data-i18n="guideGenerationText">People at the same family-tree depth share the same colour.</p></div></div></div></section>
   </main>
-  <footer><p data-i18n="footerText">Family Heritage Tree • Built for the family gathering</p></footer>
+
+  <footer class="footer">Family Heritage Tree • Drag to move • Use + / − to zoom • Tap a card button to open the next generation</footer>
+
   <script src="data.js"></script>
   <script src="corrections.js"></script>
-  <script src="app.js"></script>
+  <script src="final-fixes.js"></script>
+  <script src="unified-app.js"></script>
 </body>
 </html>
