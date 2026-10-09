@@ -1,0 +1,11 @@
+{
+  "name": "Family Heritage Tree",
+  "short_name": "Family Tree",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f7f4ed",
+  "theme_color": "#173a63",
+  "description": "Bilingual family heritage tree for the Nayeb Chowdhury lineage.",
+  "icons": [{"src":"family-tree-icon.svg","sizes":"any","type":"image/svg+xml","purpose":"any maskable"}]
+}
