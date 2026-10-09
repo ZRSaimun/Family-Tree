@@ -1,5 +1,5 @@
 (() => {
-  const state={lang:localStorage.getItem('familyTreeLang')||'en',allExpanded:true,query:''};
+  const state={lang:localStorage.getItem('familyTreeLang')||'en',allExpanded:false,query:''};
   const generationColors=['var(--gen-1)','var(--gen-2)','var(--gen-3)','var(--gen-4)','var(--gen-5)','var(--gen-6)','var(--gen-7)'];
   const byId=id=>document.getElementById(id);
   const esc=(v='')=>String(v).replace(/[&<>'"]/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[ch]));
@@ -25,16 +25,18 @@
   function card(person,depth){
     const kids=childrenOf(person),note=pick(person,'noteEn','noteBn'),relation=pick(person,'relationEn','relationBn');
     const hit=state.query&&searchText(person).includes(state.query.toLowerCase());
+    const initiallyCollapsed=depth>=2;
     return `<article class="person-card${person.placeholder?' placeholder-card':''}${hit?' search-hit':''}" data-search="${esc(searchText(person))}">
       <div class="person-main"><div class="person-name-row"><div><h3 class="person-name">${esc(person[state.lang]||person.en)}</h3><span class="person-role">${esc(relation||`${t('generation')} ${depth}`)}</span></div>${person.deceased?`<span class="status-badge deceased">${esc(t('deceased'))}</span>`:''}</div>${note?`<p class="person-note">${esc(note)}</p>`:''}</div>
       ${spouseBlock(person)}
-      ${kids.length?`<div class="node-actions"><button class="toggle-children" type="button" data-node="${esc(person.id)}">${esc(t('hideChildren'))} · ${kids.length}</button></div>`:''}
+      ${kids.length?`<div class="node-actions"><button class="toggle-children" type="button" data-node="${esc(person.id)}">${esc(initiallyCollapsed?t('showChildren'):t('hideChildren'))} · ${kids.length}</button></div>`:''}
     </article>`;
   }
 
   function node(person,depth=1){
     const kids=childrenOf(person),color=generationColors[(depth-1)%generationColors.length];
-    return `<div class="family-node" style="--g:${color}" data-person-node="${esc(person.id)}">${card(person,depth)}${kids.length?`<div class="children-wrap" data-children-of="${esc(person.id)}"><div class="children-grid">${kids.map(k=>`<div class="child-branch">${node(k,depth+1)}</div>`).join('')}</div></div>`:''}</div>`;
+    const collapsed=depth>=2?' collapsed':'';
+    return `<div class="family-node" style="--g:${color}" data-person-node="${esc(person.id)}" data-depth="${depth}">${card(person,depth)}${kids.length?`<div class="children-wrap${collapsed}" data-children-of="${esc(person.id)}"><div class="children-grid">${kids.map(k=>`<div class="child-branch">${node(k,depth+1)}</div>`).join('')}</div></div>`:''}</div>`;
   }
 
   function renderRoot(){
@@ -45,7 +47,7 @@
   }
   function bindToggles(){
     document.querySelectorAll('.toggle-children').forEach(btn=>btn.addEventListener('click',()=>{
-      const wrap=document.querySelector(`[data-children-of="${CSS.escape(btn.dataset.node)}"]`); if(!wrap)return;
+      const wrap=document.querySelector(`[data-children-of="${CSS.escape(btn.dataset.node)}"]`);if(!wrap)return;
       const collapsed=wrap.classList.toggle('collapsed');
       const count=wrap.querySelectorAll(':scope > .children-grid > .child-branch').length;
       btn.textContent=`${collapsed?t('showChildren'):t('hideChildren')} · ${count}`;
@@ -54,32 +56,33 @@
   function renderTrees(){
     byId('mohabbatTree').innerHTML=`<div class="tree-root">${node(familyData.main,1)}</div>`;
     byId('abdullahTree').innerHTML=`<div class="tree-root">${node(familyData.secondary,1)}</div>`;
-    bindToggles(); applySearch();
+    bindToggles();applySearch();
   }
   function translateUI(){
-    document.documentElement.lang=state.lang==='bn'?'bn':'en'; document.body.classList.toggle('lang-bn',state.lang==='bn');
+    document.documentElement.lang=state.lang==='bn'?'bn':'en';document.body.classList.toggle('lang-bn',state.lang==='bn');
     document.querySelectorAll('[data-i18n]').forEach(el=>{const k=el.dataset.i18n;if(t(k))el.textContent=t(k)});
     byId('searchInput').placeholder=t('searchPlaceholder');
-    byId('mohabbatTitle').textContent=t('branchTitleMain'); byId('abdullahTitle').textContent=t('branchTitleSecondary');
+    byId('mohabbatTitle').textContent=t('branchTitleMain');byId('abdullahTitle').textContent=t('branchTitleSecondary');
     document.querySelectorAll('.lang-btn').forEach(b=>b.classList.toggle('active',b.dataset.lang===state.lang));
   }
   function setLanguage(lang){
-    state.lang=lang; localStorage.setItem('familyTreeLang',lang); translateUI(); renderLegend(); renderRoot(); renderTrees(); byId('expandAllBtn').textContent=state.allExpanded?t('collapseAll'):t('expandAll');
+    state.lang=lang;localStorage.setItem('familyTreeLang',lang);translateUI();renderLegend();renderRoot();renderTrees();byId('expandAllBtn').textContent=state.allExpanded?t('collapseAll'):t('expandAll');
   }
   function applySearch(){
     const q=state.query.trim().toLowerCase();
     document.querySelectorAll('.tree-board .no-results').forEach(el=>el.remove());
-    if(!q){document.querySelectorAll('.family-node,.child-branch').forEach(el=>el.style.display='');document.querySelectorAll('.children-wrap').forEach(el=>el.classList.remove('collapsed'));byId('clearSearch').classList.add('hidden');return;}
+    if(!q){document.querySelectorAll('.family-node,.child-branch').forEach(el=>el.style.display='');byId('clearSearch').classList.add('hidden');return;}
     byId('clearSearch').classList.remove('hidden');
-    document.querySelectorAll('.family-node,.child-branch').forEach(el=>el.style.display='none'); document.querySelectorAll('.children-wrap').forEach(el=>el.classList.remove('collapsed'));
+    document.querySelectorAll('.family-node,.child-branch').forEach(el=>el.style.display='none');document.querySelectorAll('.children-wrap').forEach(el=>el.classList.remove('collapsed'));
     document.querySelectorAll('.person-card').forEach(card=>{
-      const match=(card.dataset.search||'').includes(q); card.classList.toggle('search-hit',match); if(!match)return;
-      let n=card.closest('.family-node'); while(n){n.style.display='';const branch=n.closest('.child-branch');if(branch)branch.style.display='';n=branch?branch.parentElement.closest('.family-node'):null;}
+      const match=(card.dataset.search||'').includes(q);card.classList.toggle('search-hit',match);if(!match)return;
+      let n=card.closest('.family-node');while(n){n.style.display='';const branch=n.closest('.child-branch');if(branch)branch.style.display='';n=branch?branch.parentElement.closest('.family-node'):null;}
     });
     ['mohabbatTree','abdullahTree'].forEach(id=>{const b=byId(id);if(![...b.querySelectorAll('.person-card')].some(c=>c.classList.contains('search-hit')))b.insertAdjacentHTML('beforeend',`<div class="no-results">${esc(t('noResults'))}</div>`)});
   }
   function toggleAll(){
-    state.allExpanded=!state.allExpanded; document.querySelectorAll('.children-wrap').forEach(w=>w.classList.toggle('collapsed',!state.allExpanded));
+    state.allExpanded=!state.allExpanded;
+    document.querySelectorAll('.children-wrap').forEach(w=>w.classList.toggle('collapsed',!state.allExpanded));
     document.querySelectorAll('.toggle-children').forEach(btn=>{const wrap=document.querySelector(`[data-children-of="${CSS.escape(btn.dataset.node)}"]`);const count=wrap?wrap.querySelectorAll(':scope > .children-grid > .child-branch').length:'';btn.textContent=`${state.allExpanded?t('hideChildren'):t('showChildren')} · ${count}`});
     byId('expandAllBtn').textContent=state.allExpanded?t('collapseAll'):t('expandAll');
   }
@@ -88,5 +91,5 @@
   byId('expandAllBtn').addEventListener('click',toggleAll);
   byId('searchInput').addEventListener('input',e=>{state.query=e.target.value;renderTrees()});
   byId('clearSearch').addEventListener('click',()=>{state.query='';byId('searchInput').value='';renderTrees();byId('searchInput').focus()});
-  translateUI(); renderLegend(); renderRoot(); renderTrees(); byId('expandAllBtn').textContent=t('collapseAll');
+  translateUI();renderLegend();renderRoot();renderTrees();byId('expandAllBtn').textContent=t('expandAll');
 })();
