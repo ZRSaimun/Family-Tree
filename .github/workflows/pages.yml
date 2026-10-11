@@ -37,6 +37,7 @@ jobs:
           node --check family-platform-stable.js
           node --check family-v4.js
           node --check family-v5.js
+          node --check family-v7-extras.js
           node --check sw.js
 
       - name: Configure Pages
