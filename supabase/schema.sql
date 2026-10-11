@@ -5,6 +5,8 @@
 create extension if not exists pgcrypto;
 create schema if not exists private;
 
+grant usage on schema private to authenticated;
+
 create table if not exists public.family_admins (
   email text primary key,
   created_at timestamptz not null default now()
@@ -64,6 +66,40 @@ $$;
 
 revoke all on function private.is_family_admin() from public;
 grant execute on function private.is_family_admin() to authenticated;
+
+-- Keep the official family tree pointer atomic: whenever an admin publishes a
+-- snapshot, every older snapshot is unpublished inside the same database transaction.
+create or replace function private.keep_single_published_snapshot()
+returns trigger
+language plpgsql
+security definer
+set search_path = ''
+as $$
+begin
+  if new.is_published then
+    update public.family_snapshots
+       set is_published = false
+     where is_published = true
+       and id <> new.id;
+  end if;
+  return new;
+end;
+$$;
+
+revoke all on function private.keep_single_published_snapshot() from public;
+grant execute on function private.keep_single_published_snapshot() to authenticated;
+
+drop trigger if exists family_snapshots_single_published on public.family_snapshots;
+create trigger family_snapshots_single_published
+before insert or update of is_published on public.family_snapshots
+for each row
+when (new.is_published = true)
+execute function private.keep_single_published_snapshot();
+
+-- Database-level invariant: at most one row may remain published.
+create unique index if not exists family_snapshots_one_published_idx
+  on public.family_snapshots ((1))
+  where is_published = true;
 
 alter table public.family_admins enable row level security;
 alter table public.family_snapshots enable row level security;
