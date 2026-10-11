@@ -6,15 +6,22 @@
   const patch=(id,values)=>{const p=byId(id);if(p)Object.assign(p,values);};
 
   familyData.rootTrail=[
-    {type:'person',id:'nayeb-chowdhury',en:'Nayeb Chowdhury',bn:'নায়েব চৌধুরী',noteEn:'Zamindar',noteBn:'জমিদার'},
-    {type:'person',id:'chan-gazi-hawladar',en:'Chan Gazi Hawladar',bn:'চাঁন গাজী হাওলাদার'}
+    {type:'person',id:'nayeb-chowdhury',en:'Nayeb Chowdhury',bn:'নায়েব চৌধুরী',noteEn:'Zamindar',noteBn:'জমিদার',deceased:true},
+    {type:'person',id:'chan-gazi-hawladar',en:'Chan Gazi Hawladar',bn:'চাঁন গাজী হাওলাদার',deceased:true}
   ];
 
-  patch('mohabbat-ali-munsir',{en:'Mohabbat Ali Munsir',bn:'মোহাব্বত আলি মুনসির',noteEn:'4 sons and 2 daughters recorded.',noteBn:'৪ ছেলে ও ২ মেয়ে নথিভুক্ত।'});
-  patch('abdullah-chamra',{en:'Abdullah Chamra',bn:'আব্দুল্লাহ চামড়া',noteEn:'6 sons recorded.',noteBn:'৬ ছেলে নথিভুক্ত।'});
+  patch('mohabbat-ali-munsir',{en:'Mohabbat Ali Munsir',bn:'মোহাব্বত আলি মুনসির',noteEn:'4 sons and 2 daughters recorded.',noteBn:'৪ ছেলে ও ২ মেয়ে নথিভুক্ত।',deceased:true});
+  patch('abdullah-chamra',{en:'Abdullah Chamra',bn:'আব্দুল্লাহ চামড়া',noteEn:'6 sons recorded.',noteBn:'৬ ছেলে নথিভুক্ত।',deceased:true});
   patch('jahanara-janu',{en:'Jahanara Janu',bn:'জাহানারা জানু'});
-  patch('akuri',{en:'Aunkuri',bn:'আঃকুরি'});
+  patch('akuri',{en:'Aunkuri',bn:'আঃকুরি',deceased:true});
   patch('md-mehdi-hasan-sifat',{en:'Md. Mehedi Hasan shefat',bn:'মোঃ মেহেদী হাসান সিফাত'});
+
+  // Confirmed deceased statuses supplied by the family. Uncertain people are intentionally left unmarked.
+  [
+    'noor-mia','anowar-ullah','afaz-mia','dr-abul-hasem','rati',
+    'abul-khayer','choiyeed-ahmed','mofizur-rahman','mominul-islam',
+    'abdul-haq','rafiqul-islam'
+  ].forEach(id=>patch(id,{deceased:true}));
 
   const saimun=byId('md-zillur-rahman-saimun');
   if(saimun){delete saimun.relationEn;delete saimun.relationBn;}
