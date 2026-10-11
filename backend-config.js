@@ -1,9 +1,10 @@
-// Family Tree V5 backend configuration.
-// The Supabase publishable/anon key is safe to use in browser code when RLS is enabled.
-// NEVER place a Supabase service_role key in this repository or in browser storage.
+// Family Tree cloud backend configuration.
+// This browser file intentionally contains only the Supabase project URL and
+// publishable key. Security is enforced by Postgres Row Level Security.
+// NEVER place a Supabase secret/service_role key in this repository or browser storage.
 window.FAMILY_BACKEND_CONFIG = Object.freeze({
-  enabled: false,
-  supabaseUrl: '',
-  supabaseAnonKey: '',
+  enabled: true,
+  supabaseUrl: 'https://bgdkcbrvakjbzrrqiknx.supabase.co',
+  supabaseAnonKey: 'sb_publishable_vQKqokAfkZIEWb_FUJO2SA_9z24po04',
   projectName: 'Family Heritage Tree'
 });
