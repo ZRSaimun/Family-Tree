@@ -1,25 +1,56 @@
-# Family Tree V5 — Supabase setup
+# Family Tree — Supabase activation
 
-The website is fully prepared for a central family database, shared correction queue, private admin login, version history, and photo storage. Until Supabase is connected, the public site continues to work in local/static mode.
+The public family tree is designed so the stable static site keeps working even if the cloud backend is unavailable. Supabase is an optional shared-data layer for central submissions, private admin review, version history and approved photo storage.
 
-## 1. Create a Supabase project
+## 1. Connect/create the Supabase project
 
-Create a new Supabase project, then copy these two **public browser values** from the project settings:
+Create or connect a Supabase project, then use these two **public browser values** from the project settings:
 
 - Project URL
 - Publishable/anon key
 
 Never use or publish the `service_role` key.
 
-## 2. Create the database
+## 2. Create and secure the database
 
-Open Supabase → SQL Editor, paste the full contents of `supabase/schema.sql`, and run it.
+Run the full contents of `supabase/schema.sql` in the Supabase SQL Editor.
 
-At the bottom of that file there is a commented first-admin line. Replace `YOUR_ADMIN_EMAIL_HERE` with the email address you want to use for the private admin magic-link login, uncomment that one line, and run it.
+The schema creates:
 
-## 3. Configure the website
+- `family_admins`
+- `family_snapshots`
+- `family_submissions`
+- `family_audit_log`
+- Row Level Security policies
+- the `family-media` Storage bucket
+- an atomic database rule that keeps at most one family snapshot published at a time
 
-Open `backend-config.js` and set:
+At the bottom of `supabase/schema.sql` there is a commented first-admin statement. Replace `YOUR_ADMIN_EMAIL_HERE` with the email you intend to use for magic-link admin login, uncomment that one statement, and run it.
+
+Do not guess or reuse an email just because it appears elsewhere in GitHub; use the address you deliberately choose for family administration.
+
+## 3. Verify the backend before enabling it
+
+Run `supabase/verify.sql` after the schema. It checks:
+
+- all four family tables exist;
+- RLS is enabled;
+- family/storage policies exist;
+- no more than one snapshot is published;
+- the admin allow-list is present;
+- the media bucket is configured;
+- the one-published-version database invariant exists.
+
+## 4. Configure Supabase Auth URLs
+
+In Supabase → Authentication → URL Configuration:
+
+- Site URL: `https://zrsaimun.github.io/Family-Tree/`
+- Add the same URL to allowed redirect URLs.
+
+## 5. Activate cloud mode in the website
+
+Edit `backend-config.js`:
 
 ```js
 window.FAMILY_BACKEND_CONFIG = Object.freeze({
@@ -30,51 +61,56 @@ window.FAMILY_BACKEND_CONFIG = Object.freeze({
 });
 ```
 
-The publishable/anon key is intentionally used in the browser. Security is enforced by the Row Level Security policies in `supabase/schema.sql`.
+The publishable/anon key is intentionally used in browser code. Security is enforced by the database Row Level Security policies.
 
-## 4. Supabase Auth URL settings
+### Why activation is safe
 
-In Supabase → Authentication → URL Configuration, set the Site URL to:
+`index.html` always loads the stable tree first. `cloud-loader.js` loads the cloud/admin UI only when all three conditions are true:
 
-`https://zrsaimun.github.io/Family-Tree/`
+1. `enabled` is `true`;
+2. a Supabase URL is present;
+3. a public anon/publishable key is present.
 
-Add the same URL to the allowed redirect URLs.
+When cloud mode is off, the Supabase feature code and CSS are not loaded at all. A cloud failure therefore cannot prevent the core family tree from opening.
 
-## 5. First admin sign-in and first publish
+`backend-preload.js` is separately gated. It only applies a cached official cloud snapshot when cloud mode is explicitly enabled and the cached family data passes structural validation. Invalid/stale cloud cache is discarded.
 
-Open the website, open **Family Database**, and request a magic link with the same admin email you added to `family_admins`.
+## 6. First admin sign-in and Version 1
 
-After signing in:
+Open the website and use **Family Database**. Request a magic link using exactly the same address listed in `family_admins`.
 
-1. Press **Seed current tree** once. This copies the current corrected website family data into the central database as Version 1.
-2. Future admin edits create a new version instead of overwriting history.
-3. Public visitors automatically load the newest published version.
+After admin sign-in:
 
-## How publishing works
+1. Use **Seed current tree** once to create the first official shared snapshot.
+2. Confirm Version 1 is published.
+3. Re-run `supabase/verify.sql`; `published_snapshot_count` should be `1`.
+4. Open the site in a signed-out/private browser and confirm the public tree loads Version 1.
 
-The current JavaScript tree is the safe fallback. When a published Supabase snapshot exists, the browser caches that official snapshot before the normal family-tree renderer starts. If a newer version is available, the page refreshes once and renders the new official version.
-
-This means:
-
-- family corrections are recoverable;
-- approved changes can be published without editing `data.js` manually;
-- every published version remains in history;
-- the static tree still works if Supabase is temporarily unavailable.
+Future edits publish a new snapshot instead of overwriting history. The database automatically unpublishes the old version in the same transaction, so the public site cannot end up with two official versions.
 
 ## Family submissions
 
-Relatives can use **Submit family update** without an admin account. They can submit a spelling correction, spouse/child information, parent information, dates, story/history information, or a "This is me" claim.
+Relatives can submit spelling corrections, spouse/child information, parent information, dates, location/occupation, family stories and “This is me” claims.
 
-Public users cannot read the submission queue. Only authenticated admins listed in `family_admins` can review it.
+Anonymous visitors can **insert** a pending submission but cannot read the queue. Only authenticated users whose email exists in `family_admins` can review submissions.
 
 ## Photos
 
-The SQL creates a public `family-media` bucket. Public visitors can view approved photos, but only authenticated family admins can upload, change, or delete files. The configured maximum file size is 10 MB and the allowed formats are JPEG, PNG, WEBP, and HEIC.
+Approved media is stored in the public `family-media` bucket. Public visitors may display approved photo URLs. Only authenticated family admins may upload, update or delete Storage objects through the configured policies.
 
-## Security notes
+Current limits:
 
-- Never put the Supabase `service_role` key in GitHub, browser code, localStorage, screenshots, or chat.
-- Admin permissions are enforced in Postgres RLS, not only hidden in the UI.
-- Anonymous relatives can insert correction submissions but cannot read other submissions.
+- maximum file size: 10 MB
+- JPEG
+- PNG
+- WEBP
+- HEIC
+
+## Security rules
+
+- Never put a Supabase `service_role` key in GitHub, browser code, localStorage, screenshots or chat.
+- Admin authorization is enforced in Postgres RLS, not merely by hiding buttons.
 - Public visitors can only read published snapshots.
-- Admin actions create audit records where possible.
+- Public visitors cannot read other relatives' submissions.
+- Admin actions are recorded in the family audit log where supported by the UI.
+- Keep the static family data as a recovery fallback even after cloud activation.
