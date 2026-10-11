@@ -14,6 +14,7 @@
   patch('abdullah-chamra',{en:'Abdullah Chamra',bn:'আব্দুল্লাহ চামড়া',noteEn:'6 sons recorded.',noteBn:'৬ ছেলে নথিভুক্ত।'});
   patch('jahanara-janu',{en:'Jahanara Janu',bn:'জাহানারা জানু'});
   patch('akuri',{en:'Aunkuri',bn:'আঃকুরি'});
+  patch('md-mehdi-hasan-sifat',{en:'Md. Mehedi Hasan shefat',bn:'মোঃ মেহেদী হাসান সিফাত'});
 
   const saimun=byId('md-zillur-rahman-saimun');
   if(saimun){delete saimun.relationEn;delete saimun.relationBn;}
