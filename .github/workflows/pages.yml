@@ -41,6 +41,7 @@ jobs:
           node --check cloud-loader.js
           node --check cinematic-show.js
           node --check legacy-highlights.js
+          node --check memorial-status.js
           node --check sw.js
 
       - name: Configure Pages
