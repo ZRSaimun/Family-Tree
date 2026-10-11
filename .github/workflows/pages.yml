@@ -39,6 +39,7 @@ jobs:
           node --check family-v5.js
           node --check family-v7-extras.js
           node --check cloud-loader.js
+          node --check cinematic-show.js
           node --check sw.js
 
       - name: Configure Pages
