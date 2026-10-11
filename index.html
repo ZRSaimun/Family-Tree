@@ -6,12 +6,14 @@
   <meta name="description" content="Interactive bilingual family tree for the Nayeb Chowdhury lineage." />
   <meta name="theme-color" content="#173a63" />
   <title>Family Heritage Tree</title>
-  <link rel="icon" href="family-tree-icon.svg?v=7" type="image/svg+xml" />
-  <link rel="stylesheet" href="family-v2.css?v=7" />
-  <link rel="stylesheet" href="stability-fixes.css?v=5" />
+  <link rel="icon" href="family-tree-icon.svg?v=8" type="image/svg+xml" />
+  <link rel="stylesheet" href="family-v2.css?v=8" />
+  <link rel="stylesheet" href="stability-fixes.css?v=6" />
+  <link rel="stylesheet" href="family-v3.css?v=8" />
+  <link rel="stylesheet" href="family-v7-extras.css?v=1" />
   <script>
-    // Recovery build: remove every old PWA registration/cache before the app starts.
-    // The tree itself does not depend on a service worker.
+    // Stable build: remove old PWA registrations/caches before the family app starts.
+    // The core family tree never depends on a service worker or cloud backend.
     (async function(){
       try {
         if ('serviceWorker' in navigator) {
@@ -62,11 +64,13 @@
 
   <noscript><div style="padding:30px;font-family:system-ui">JavaScript is required to display the interactive family tree.</div></noscript>
 
-  <script src="data.js?v=7"></script>
-  <script src="corrections.js?v=7"></script>
-  <script src="final-fixes.js?v=7"></script>
-  <script src="family-v2.js?v=7"></script>
-  <script src="stability-fixes.js?v=5"></script>
+  <script src="data.js?v=8"></script>
+  <script src="corrections.js?v=8"></script>
+  <script src="final-fixes.js?v=8"></script>
+  <script src="family-v2.js?v=8"></script>
+  <script src="stability-fixes.js?v=6"></script>
+  <script src="family-platform-stable.js?v=8"></script>
+  <script src="family-v7-extras.js?v=1"></script>
   <script>
     window.addEventListener('load', function(){
       setTimeout(function(){
@@ -74,7 +78,7 @@
         if (host && !host.querySelector('.person-card')) {
           host.innerHTML = '<div style="margin:24px;padding:24px;border:1px solid #e5e7eb;border-radius:16px;background:#fff;color:#374151;font:600 14px/1.5 system-ui"><b>Family tree could not start.</b><br>Please reload this page once. If this message remains, send a screenshot of this exact message.</div>';
         }
-      }, 1800);
+      }, 2200);
     });
   </script>
 </body>
