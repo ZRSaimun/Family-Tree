@@ -6,14 +6,14 @@
   <meta name="description" content="Interactive bilingual family tree for the Nayeb Chowdhury lineage." />
   <meta name="theme-color" content="#173a63" />
   <title>Family Heritage Tree</title>
-  <link rel="icon" href="family-tree-icon.svg?v=8" type="image/svg+xml" />
-  <link rel="stylesheet" href="family-v2.css?v=8" />
-  <link rel="stylesheet" href="stability-fixes.css?v=6" />
-  <link rel="stylesheet" href="family-v3.css?v=8" />
-  <link rel="stylesheet" href="family-v7-extras.css?v=1" />
+  <link rel="icon" href="family-tree-icon.svg?v=9" type="image/svg+xml" />
+  <link rel="stylesheet" href="family-v2.css?v=9" />
+  <link rel="stylesheet" href="stability-fixes.css?v=7" />
+  <link rel="stylesheet" href="family-v3.css?v=9" />
+  <link rel="stylesheet" href="family-v7-extras.css?v=2" />
   <script>
     // Stable build: remove old PWA registrations/caches before the family app starts.
-    // The core family tree never depends on a service worker or cloud backend.
+    // The core family tree never depends on a service worker.
     (async function(){
       try {
         if ('serviceWorker' in navigator) {
@@ -24,7 +24,6 @@
           const keys = await caches.keys();
           await Promise.all(keys.map(k => caches.delete(k)));
         }
-        localStorage.removeItem('familyTreeCloudSnapshot');
       } catch (_) {}
     })();
   </script>
@@ -64,13 +63,16 @@
 
   <noscript><div style="padding:30px;font-family:system-ui">JavaScript is required to display the interactive family tree.</div></noscript>
 
-  <script src="data.js?v=8"></script>
-  <script src="corrections.js?v=8"></script>
-  <script src="final-fixes.js?v=8"></script>
-  <script src="family-v2.js?v=8"></script>
-  <script src="stability-fixes.js?v=6"></script>
-  <script src="family-platform-stable.js?v=8"></script>
-  <script src="family-v7-extras.js?v=1"></script>
+  <script src="data.js?v=9"></script>
+  <script src="corrections.js?v=9"></script>
+  <script src="final-fixes.js?v=9"></script>
+  <script src="backend-config.js?v=3"></script>
+  <script src="backend-preload.js?v=3"></script>
+  <script src="family-v2.js?v=9"></script>
+  <script src="stability-fixes.js?v=7"></script>
+  <script src="family-platform-stable.js?v=9"></script>
+  <script src="family-v7-extras.js?v=2"></script>
+  <script src="cloud-loader.js?v=1"></script>
   <script>
     window.addEventListener('load', function(){
       setTimeout(function(){
