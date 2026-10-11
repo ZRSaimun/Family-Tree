@@ -40,6 +40,7 @@ jobs:
           node --check family-v7-extras.js
           node --check cloud-loader.js
           node --check cinematic-show.js
+          node --check legacy-highlights.js
           node --check sw.js
 
       - name: Configure Pages
