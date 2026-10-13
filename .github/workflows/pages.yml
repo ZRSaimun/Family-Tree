@@ -32,6 +32,7 @@ jobs:
           node --check final-fixes.js
           node --check backend-config.js
           node --check backend-preload.js
+          node --check family-expansion.js
           node --check family-v2.js
           node --check stability-fixes.js
           node --check family-platform-stable.js
