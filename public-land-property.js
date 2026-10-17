@@ -85,7 +85,7 @@
   }
 
   function kv(label, value) {
-    if (value === null || value === undefined || String(value).trim() === '') return '';
+    if (value === null || value === undefined || String(value).trim() === '') value = bn() ? 'তথ্য নেই / যাচাই হয়নি' : 'Not recorded / unverified';
     return `<div class="land-kv"><span>${esc(label)}</span><b>${esc(value)}</b></div>`;
   }
 
@@ -191,10 +191,11 @@
 
     box.innerHTML = `<h2>${esc(recordTitle(r))}</h2>
       <div class="sub">${esc(recordMeta(r))}</div>
+      <p class="land-evidence-note">${bn() ? 'পারিবারিক হিসাব বর্তমান আইনি মালিকানার প্রমাণ নয়। খতিয়ান স্বত্বলিপি; একাই চূড়ান্ত মালিকানার দলিল নয়। প্রস্তাবিত উত্তরসূরি থেকে উত্তরাধিকার বণ্টন নির্ধারণ করা হয় না। অনুপস্থিত তথ্য এখনো যাচাই হয়নি।' : 'Family reports do not establish current legal ownership. A khatian is a Record of Rights and alone is not definitive title. Proposed successors do not establish inheritance allocations. Missing information remains unverified.'}</p>
       <section class="land-doc-details">
         <h3>${bn() ? 'মালিকানা ও উত্তরাধিকার' : 'Ownership & destination'}</h3>
-        ${kv(bn() ? 'বর্তমান/হিসাবের মালিক' : 'Current / recorded owner', ownerName(r))}
-        ${kv(bn() ? 'যার কাছে যাবে / উত্তরাধিকারী' : 'Goes to / successor', goesToName(r))}
+        ${kv(bn() ? 'পারিবারিক / ঐতিহাসিক হিসাবে নাম' : 'Name in family / historical record', ownerName(r))}
+        ${kv(bn() ? 'প্রস্তাবিত প্রাপক / উত্তরসূরি' : 'Reported destination / proposed successor', goesToName(r))}
         ${kv(bn() ? 'মালিকানার অংশ' : 'Ownership share', r.ownership_share)}
         ${kv(bn() ? 'যাচাই অবস্থা' : 'Verification status', statusText(r.record_status))}
       </section>
@@ -385,7 +386,7 @@
             <p>${bn() ? 'মালিক · উত্তরাধিকারী · খতিয়ান · দাগ · মৌজা · ম্যাপ · দলিল' : 'Owner · successor · khatian · dag · mouza · map · deed'}</p></div>
           </div>
           <div class="land-actions">
-            <a target="_blank" rel="noopener" href="https://settlement.gov.bd/khatian/search">${bn() ? 'খতিয়ান যাচাই' : 'Khatian search'}</a>
+            <a target="_blank" rel="noopener" href="https://settlement.gov.bd/Khatian/">${bn() ? 'খতিয়ান যাচাই' : 'Khatian search'}</a>
             <a target="_blank" rel="noopener" href="https://map.settlement.gov.bd/">${bn() ? 'মৌজা ম্যাপ' : 'Mouza map'}</a>
             <button id="publicLandAdd" class="primary" type="button">${bn() ? 'নতুন রেকর্ড' : 'Add record'}</button>
             <button id="publicLandClose" type="button">${bn() ? 'পরিবারে ফিরুন' : 'Back to family'}</button>
@@ -403,7 +404,7 @@
           </aside>
           <section class="land-panel land-map-panel">
             <div id="publicLandMap" class="land-map-wrap"></div>
-            <div class="land-portal-row"><a class="land-btn" target="_blank" rel="noopener" href="https://map.settlement.gov.bd/">map.settlement.gov.bd</a><a class="land-btn" target="_blank" rel="noopener" href="https://settlement.gov.bd/khatian/search">settlement.gov.bd</a></div>
+            <div class="land-portal-row"><a class="land-btn" target="_blank" rel="noopener" href="https://map.settlement.gov.bd/">map.settlement.gov.bd</a><a class="land-btn" target="_blank" rel="noopener" href="https://settlement.gov.bd/Khatian/">settlement.gov.bd</a></div>
           </section>
           <aside class="land-panel land-detail-panel"><div id="publicLandDetail" class="land-detail"></div></aside>
         </div>
@@ -416,8 +417,8 @@
           <fieldset class="land-deed-extra"><legend>${bn() ? 'মালিকানা / কার কাছে যাবে' : 'Ownership / who it goes to'}</legend>
             <label>${bn() ? 'মালিক (English)' : 'Owner (English)'}<input name="owner_name_en"></label>
             <label>${bn() ? 'মালিক (বাংলা)' : 'Owner (Bangla)'}<input name="owner_name_bn"></label>
-            <label>${bn() ? 'যার কাছে যাবে (English)' : 'Goes to / successor (English)'}<input name="goes_to_en"></label>
-            <label>${bn() ? 'যার কাছে যাবে (বাংলা)' : 'Goes to / successor (Bangla)'}<input name="goes_to_bn"></label>
+            <label>${bn() ? 'যার কাছে যাবে (English)' : 'Reported destination / proposed successor (English)'}<input name="goes_to_en"></label>
+            <label>${bn() ? 'যার কাছে যাবে (বাংলা)' : 'Reported destination / proposed successor (Bangla)'}<input name="goes_to_bn"></label>
           </fieldset>
           <label>Person ID<input name="person_id"></label>
           <label>Record label<input name="record_label"></label>

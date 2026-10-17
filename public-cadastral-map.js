@@ -54,15 +54,11 @@
       const exact = sheets.find(s => s.id === r.mouza_map_sheet_id);
       if (exact) return exact;
     }
-    const candidates = sheets.filter(s => String(s.mouza || '').toLowerCase() === String(r.mouza || '').toLowerCase());
-    if (r.sheet_no) {
-      const sameSheet = candidates.find(s => String(s.sheet_no || '') === String(r.sheet_no));
-      if (sameSheet) return sameSheet;
-    }
-    if (r.survey_type) {
-      const sameSurvey = candidates.find(s => String(s.survey_type || '').toLowerCase() === String(r.survey_type).toLowerCase());
-      if (sameSurvey) return sameSurvey;
-    }
+    // A name or one matching sheet number cannot identify a survey parcel.
+    if (!r.survey_type || !r.sheet_no || !r.jl_no) return null;
+    const candidates = sheets.filter(s =>
+      ['division','district','upazila','mouza','survey_type','sheet_no','jl_no'].every(key =>
+        String(r[key] || '').trim().toLowerCase() === String(s[key] || '').trim().toLowerCase()));
     return candidates.length === 1 ? candidates[0] : null;
   }
 
@@ -88,13 +84,7 @@
 
   function sheetRecords(sheet) {
     if (!sheet) return [];
-    return records.filter(r => {
-      if (r.mouza_map_sheet_id) return r.mouza_map_sheet_id === sheet.id;
-      if (String(r.mouza || '').toLowerCase() !== String(sheet.mouza || '').toLowerCase()) return false;
-      if (r.sheet_no && sheet.sheet_no && String(r.sheet_no) !== String(sheet.sheet_no)) return false;
-      if (r.survey_type && sheet.survey_type && String(r.survey_type).toLowerCase() !== String(sheet.survey_type).toLowerCase()) return false;
-      return true;
-    });
+    return records.filter(r => currentSheet(r)?.id === sheet.id);
   }
 
   function chooseRecord(id) {
@@ -138,30 +128,10 @@
     return null;
   }
 
-  function pixelToLatLng(sheet, point) {
-    const c = cornerSet(sheet);
-    if (!c) return null;
-    const x = Math.max(0, Math.min(1, Number(point[0])));
-    const y = Math.max(0, Math.min(1, Number(point[1])));
-    const wNW = (1-x)*(1-y), wNE = x*(1-y), wSE = x*y, wSW = (1-x)*y;
-    return {
-      lat: c.nw.lat*wNW + c.ne.lat*wNE + c.se.lat*wSE + c.sw.lat*wSW,
-      lng: c.nw.lng*wNW + c.ne.lng*wNE + c.se.lng*wSE + c.sw.lng*wSW
-    };
-  }
-
-  function geoFromPixels(sheet, points, recordId) {
-    // Do not claim an exact Google parcel boundary from an unverified sheet alignment.
-    if (!sheet || sheet.georef_status !== 'verified' || points.length < 3) return null;
-    const coords = points.map(p => pixelToLatLng(sheet, p));
-    if (coords.some(x => !x)) return null;
-    const ring = coords.map(p => [p.lng, p.lat]);
-    ring.push([...ring[0]]);
-    return {
-      type: 'Feature',
-      properties: { land_record_id: recordId, source: 'mouza-sheet-georeference', accuracy: sheet.georef_status || 'pending' },
-      geometry: { type: 'Polygon', coordinates: [ring] }
-    };
+  function geoFromPixels() {
+    // Four corners do not establish a cadastral transformation. Import separately
+    // validated GIS geometry after documenting CRS, control points and residuals.
+    return null;
   }
 
   function geoCentroid(feature) {
@@ -206,7 +176,7 @@
     if (!s || !s.image_url) {
       stage.innerHTML = `<div class="cadastral-empty cadastral-setup-empty">
         <b>${bn() ? 'এই জমির অফিসিয়াল মৌজা শিট এখনো যুক্ত হয়নি' : 'Official mouza sheet not attached yet'}</b>
-        <span>${bn() ? 'DLRS থেকে সঠিক CS/SA/RS/BRS/BDS শিট নিয়ে এখানে image URL ও corner coordinates দিন। তারপর প্রতিটি দাগের সীমানা ক্লিক করে ট্রেস করা যাবে।' : 'Get the correct CS/SA/RS/BRS/BDS sheet from DLRS, add its image URL and corner coordinates here, then trace each dag by clicking its boundary.'}</span>
+        <span>${bn() ? 'পাঠযোগ্য সরকারি জরিপ শিট যুক্ত করে দৃশ্যমান দাগ ট্রেস করুন। ভৌগোলিক অবস্থান নির্ধারণে পৃথকভাবে যাচাইকৃত GIS রূপান্তর প্রয়োজন।' : 'Attach a readable official survey sheet and trace its visible dag boundaries. Geographic alignment needs a separately validated GIS transformation.'}</span>
         <div><button class="cadastral-btn primary" id="cadastralConfigureSheet" type="button">${bn() ? 'মৌজা শিট সেটআপ' : 'Configure mouza sheet'}</button><a class="cadastral-btn" target="_blank" rel="noopener" href="https://map.settlement.gov.bd/">${bn() ? 'অফিসিয়াল DLRS ম্যাপ' : 'Official DLRS maps'}</a></div>
         <div class="cadastral-acquisition" role="region" aria-label="Original mouza map sourcing">
           <strong>${bn() ? 'আসল শিট খোঁজার তথ্য' : 'Original-sheet lookup'}</strong>
@@ -307,6 +277,7 @@
     const feature = geoFromPixels(s, tracePoints, r.id);
     const centroid = geoCentroid(feature);
     const body = {
+      mouza_map_sheet_id: s.id,
       parcel_pixel_polygon: tracePoints.map(p => [Number(p[0].toFixed(7)), Number(p[1].toFixed(7))]),
       parcel_geojson: feature,
       parcel_boundary_status: feature ? 'georeferenced' : 'traced',
@@ -362,8 +333,8 @@
       stage.innerHTML = `<div class="cadastral-empty">${bn() ? 'একটি জমির রেকর্ড নির্বাচন করুন।' : 'Select a land record.'}</div>`;
       return;
     }
-    const feature = parseGeoJson(r);
-    const center = mapCenter(r, feature);
+    const feature = ['georeferenced','verified'].includes(r.parcel_boundary_status) ? parseGeoJson(r) : null;
+    const center = feature ? mapCenter(r, feature) : null;
     if (!center) {
       stage.innerHTML = `<div class="cadastral-empty"><b>${bn() ? 'Google Maps-এর জন্য এখনো parcel geometry নেই' : 'No Google parcel geometry yet'}</b><span>${bn() ? 'আগে অফিসিয়াল মৌজা শিট জিওরেফারেন্স করে এই দাগটি ট্রেস করুন।' : 'First georeference the official mouza sheet and trace this dag.'}</span></div>`;
       return;
@@ -456,7 +427,7 @@
       sheet_no: String(fd.get('sheet_no') || '').trim() || null,
       image_url: String(fd.get('image_url') || '').trim() || null,
       official_source_url: String(fd.get('official_source_url') || '').trim() || 'https://map.settlement.gov.bd/',
-      georef_status: String(fd.get('georef_status') || 'pending'),
+      georef_status: fd.get('georef_status') === 'approximate' ? 'approximate' : 'pending',
       geo_corners: completeCorners ? corners : null,
       geo_bounds: completeCorners ? {
         north: Math.max(corners.nw.lat, corners.ne.lat, corners.se.lat, corners.sw.lat),
@@ -539,14 +510,14 @@
           <label>JL No.<input name="jl_no"></label>
           <label>${bn() ? 'সার্ভে' : 'Survey'}<input name="survey_type" placeholder="CS / SA / RS / BRS / BDS"></label>
           <label>${bn() ? 'শিট নম্বর' : 'Sheet no.'}<input name="sheet_no"></label>
-          <label>${bn() ? 'জিওরেফারেন্স অবস্থা' : 'Georeference status'}<select name="georef_status"><option value="pending">Pending</option><option value="approximate">Approximate</option><option value="verified">Verified</option></select></label>
+          <label>${bn() ? 'জিওরেফারেন্স অবস্থা' : 'Georeference status'}<select name="georef_status"><option value="pending">Pending</option><option value="approximate">Approximate</option></select></label>
           <label class="wide">${bn() ? 'মৌজা শিট image URL' : 'Mouza sheet image URL'}<input name="image_url" type="url" placeholder="https://..."></label>
           <label class="wide">${bn() ? 'অফিসিয়াল উৎস URL' : 'Official source URL'}<input name="official_source_url" type="url"></label>
           <fieldset class="cadastral-corners"><legend>${bn() ? 'চার কোণের latitude / longitude' : 'Four corner latitude / longitude'}</legend>
             ${['nw','ne','se','sw'].map(k => `<label>${k.toUpperCase()} lat<input name="${k}_lat" inputmode="decimal"></label><label>${k.toUpperCase()} lng<input name="${k}_lng" inputmode="decimal"></label>`).join('')}
           </fieldset>
           <div class="wide cadastral-form-actions"><a class="cadastral-btn" target="_blank" rel="noopener" href="https://map.settlement.gov.bd/">${bn() ? 'DLRS ম্যাপ খুঁজুন' : 'Find DLRS map'}</a><button class="cadastral-btn primary" type="submit">${bn() ? 'শিট সংরক্ষণ' : 'Save sheet'}</button></div>
-          <p class="wide cadastral-form-help">${bn() ? 'শিটের চার কোণের বাস্তব latitude/longitude দিলে image-এর প্রতিটি traced point Google coordinate-এ রূপান্তর হবে। Verified কেবল তখনই দিন যখন alignment বাস্তবে মিলিয়ে দেখা হয়েছে।' : 'Enter the real latitude/longitude of all four sheet corners so traced image points can be converted to Google coordinates. Use Verified only after checking the alignment against real-world features.'}</p>
+          <p class="wide cadastral-form-help">${bn() ? 'কোণের স্থানাঙ্ক কেবল আনুমানিক রেফারেন্স। এগুলো দিয়ে ভৌগোলিক সীমানা বা যাচাই তৈরি হয় না। CRS, নিয়ন্ত্রণ বিন্দু, রূপান্তর পদ্ধতি ও ত্রুটির প্রমাণ প্রয়োজন।' : 'Corner coordinates are approximate reference notes only. They do not generate geographic parcel geometry or verify alignment. Reliable alignment requires documented CRS, control points, transformation and positional error.'}</p>
         </form>
       </div>
     </section>`;

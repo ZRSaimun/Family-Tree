@@ -45,6 +45,9 @@ jobs:
           node --check memorial-status.js
           node --check admin-different-family.js
           node --check admin-different-family-menu.js
+          node --check public-land-property.js
+          node --check public-cadastral-map.js
+          node tests/cadastral-safeguards.cjs
           node --check sw.js
 
       - name: Configure Pages
