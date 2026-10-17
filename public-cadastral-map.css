@@ -30,3 +30,5 @@
 .cadastral-acquisition>div{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:9px}
 .cadastral-acquisition small{color:#7b6b3d;font:650 9px/1.4 system-ui}
 @media(max-width:550px){.cadastral-acquisition dl{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+.cadastral-preview-reference{width:100%;max-width:720px;box-sizing:border-box;background:#fff;border:1px solid #d7d0c5;border-radius:12px;padding:14px;text-align:left}.cadastral-preview-reference summary{cursor:pointer;font-weight:800;color:#173a63;min-height:28px}.cadastral-preview-reference p{line-height:1.6}.cadastral-preview-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.cadastral-preview-grid figure{margin:0;min-width:0}.cadastral-preview-grid figcaption{font-weight:700;margin-bottom:8px}.cadastral-preview-grid img{display:block;width:100%;height:auto;border:1px solid #ddd}.cadastral-preview-reference a{color:#173a63}@media(max-width:700px){.cadastral-preview-grid{grid-template-columns:1fr}}
