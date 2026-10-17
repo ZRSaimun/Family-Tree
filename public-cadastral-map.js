@@ -151,7 +151,8 @@
   }
 
   function geoFromPixels(sheet, points, recordId) {
-    if (!sheet || points.length < 3) return null;
+    // Do not claim an exact Google parcel boundary from an unverified sheet alignment.
+    if (!sheet || sheet.georef_status !== 'verified' || points.length < 3) return null;
     const coords = points.map(p => pixelToLatLng(sheet, p));
     if (coords.some(x => !x)) return null;
     const ring = coords.map(p => [p.lng, p.lat]);
@@ -209,6 +210,33 @@
         <div><button class="cadastral-btn primary" id="cadastralConfigureSheet" type="button">${bn() ? 'মৌজা শিট সেটআপ' : 'Configure mouza sheet'}</button><a class="cadastral-btn" target="_blank" rel="noopener" href="https://map.settlement.gov.bd/">${bn() ? 'অফিসিয়াল DLRS ম্যাপ' : 'Official DLRS maps'}</a></div>
       </div>`;
       $('cadastralConfigureSheet')?.addEventListener('click', () => toggleSheetForm(true));
+      const countMapped = records.filter(x => parsePixelPolygon(x).length >= 3).length;
+      const byMouza = [...new Set(records.map(x => String(x.mouza || '').trim()).filter(Boolean))];
+      const groups = byMouza.map(mouza => {
+        const items = records.filter(x => String(x.mouza || '').trim() === mouza);
+        const cards = items.map(x => {
+          const dag = x.dag_no ? `${bn() ? 'দাগ' : 'Dag'} ${esc(x.dag_no)}` : (bn() ? 'দাগ নম্বর নেই' : 'Dag not recorded');
+          const khatian = x.khatian_no ? `${bn() ? 'খতিয়ান' : 'Khatian'} ${esc(x.khatian_no)}` : (bn() ? 'খতিয়ান অপেক্ষমাণ' : 'Khatian pending');
+          const area = x.area_decimal != null ? `${esc(x.area_decimal)} ${bn() ? 'শতক' : 'decimal'}` : '';
+          const owner = bn() ? (x.owner_name_bn || x.owner_name_en || x.person_name_bn || x.person_name_en || '') : (x.owner_name_en || x.owner_name_bn || x.person_name_en || x.person_name_bn || '');
+          return `<button type="button" class="cadastral-index-card ${x.id === r.id ? 'active' : ''}" data-record-id="${esc(x.id)}" aria-label="${dag}">
+              <strong>${dag}</strong><span>${esc(x.record_label || '')}</span>
+              <small>${khatian}${area ? ' · ' + area : ''}</small>
+              ${owner ? `<small>${bn() ? 'হিসাবের নাম' : 'Recorded against'}: ${esc(owner)}</small>` : ''}
+              <em>${esc(statusLabel(x.parcel_boundary_status))}</em></button>`;
+        }).join('');
+        return `<section class="cadastral-index-group"><h4>${esc(mouza)} <span>${items.length} ${bn() ? 'টি হিসাব' : 'records'}</span></h4><div class="cadastral-index-grid">${cards}</div></section>`;
+      }).join('');
+      stage.insertAdjacentHTML('beforeend', `<section class="cadastral-index" aria-label="Land parcel register">
+        <div class="cadastral-index-head"><div><h3>${bn() ? 'দাগভিত্তিক জমির তালিকা' : 'Clickable dag register'}</h3>
+        <p>${bn() ? 'এটি জমির অবস্থানের নকশা নয়। অফিসিয়াল মৌজা শিট না পাওয়া পর্যন্ত কোন জমির সীমানা অনুমান করা হচ্ছে না।' : 'This is an index, NOT a geographical parcel map. No plot location or boundary is guessed without the official survey sheet.'}</p></div>
+        <span>${countMapped}/${records.length} ${bn() ? 'টি ট্রেস করা' : 'traced'}</span></div>
+        ${groups || `<p>${bn() ? 'জমির হিসাব পাওয়া যায়নি' : 'No land records loaded'}</p>`}
+        <p class="cadastral-index-help">${bn() ? 'দাগে ট্যাপ করুন → ডান পাশে মালিকানা, হিসাব, দলিল ও অন্যান্য তথ্য দেখুন। নকশা সংগ্রহ: অফিসিয়াল DLRS পোর্টালে জেলা নোয়াখালী, উপজেলা চাটখিল, মৌজা ভীমপুর/ভাওর এবং সঠিক জরিপ নির্বাচন করুন।' : 'Tap a dag above to open its ownership, share, deed and other details. To acquire the map, select Noakhali → Chatkhil → Bhimpur/Bhaor and the correct survey at the DLRS portal.'}</p>
+      </section>`);
+      stage.querySelectorAll('.cadastral-index-card').forEach(button => {
+        button.addEventListener('click', () => chooseRecord(button.dataset.recordId));
+      });
       return;
     }
 
