@@ -208,6 +208,13 @@
         <b>${bn() ? 'এই জমির অফিসিয়াল মৌজা শিট এখনো যুক্ত হয়নি' : 'Official mouza sheet not attached yet'}</b>
         <span>${bn() ? 'DLRS থেকে সঠিক CS/SA/RS/BRS/BDS শিট নিয়ে এখানে image URL ও corner coordinates দিন। তারপর প্রতিটি দাগের সীমানা ক্লিক করে ট্রেস করা যাবে।' : 'Get the correct CS/SA/RS/BRS/BDS sheet from DLRS, add its image URL and corner coordinates here, then trace each dag by clicking its boundary.'}</span>
         <div><button class="cadastral-btn primary" id="cadastralConfigureSheet" type="button">${bn() ? 'মৌজা শিট সেটআপ' : 'Configure mouza sheet'}</button><a class="cadastral-btn" target="_blank" rel="noopener" href="https://map.settlement.gov.bd/">${bn() ? 'অফিসিয়াল DLRS ম্যাপ' : 'Official DLRS maps'}</a></div>
+        <div class="cadastral-acquisition" role="region" aria-label="Original mouza map sourcing">
+          <strong>${bn() ? 'আসল শিট খোঁজার তথ্য' : 'Original-sheet lookup'}</strong>
+          <dl><div><dt>${bn() ? 'বিভাগ' : 'Division'}</dt><dd>Chattogram</dd></div><div><dt>${bn() ? 'জেলা' : 'District'}</dt><dd>Noakhali</dd></div><div><dt>${bn() ? 'উপজেলা' : 'Upazila'}</dt><dd>Chatkhil</dd></div><div><dt>${bn() ? 'মৌজা' : 'Mouza'}</dt><dd>${esc(r.mouza || '—')}</dd></div><div><dt>${bn() ? 'দাগ (পারিবারিক হিসাব)' : 'Family-record dag'}</dt><dd>${esc(r.dag_no || '—')}</dd></div><div><dt>${bn() ? 'জরিপ/সিট' : 'Survey/sheet'}</dt><dd>${esc([r.survey_type,r.sheet_no].filter(Boolean).join(' / ') || (bn() ? 'নিশ্চিত হয়নি' : 'Not confirmed'))}</dd></div></dl>
+          <p>${bn() ? 'DLRS-এ বিভাগ → জেলা → উপজেলা → মৌজা → জরিপ ও সিট বেছে মূল কপি খুঁজুন। সার্ভে/সিট নম্বর এখনো যাচাই হয়নি। অনুমান করে অন্য মৌজার নকশা ব্যবহার করা হবে না।' : 'On DLRS select division → district → upazila → mouza → survey → sheet. Survey and sheet numbers are not yet verified. A different mouza map will not be substituted.'}</p>
+          <div><a href="https://map.settlement.gov.bd/" target="_blank" rel="noopener" class="cadastral-btn primary">${bn() ? 'সরকারি শিট খুঁজুন' : 'Search official DLRS sheets'}</a><a href="https://mouza.bd/mouza-maps" target="_blank" rel="noopener" class="cadastral-btn">${bn() ? 'বেসরকারি রেফারেন্স আর্কাইভ' : 'Unofficial reference archive'}</a></div>
+          <small>${bn() ? 'অবস্থা: Bhimpur এবং Bhaor-এর যাচাইকৃত আসল স্ক্যান এখনো পাওয়া যায়নি। সরকারি মূল ম্যাপ ছাড়া কোন সীমানাকে অফিসিয়াল দেখানো হবে না।' : 'Status: no authenticated Bhimpur or Bhaor scanned sheet is attached. Parcel outlines cannot be called official without the matching survey sheet.'}</small>
+        </div>
       </div>`;
       $('cadastralConfigureSheet')?.addEventListener('click', () => toggleSheetForm(true));
       const countMapped = records.filter(x => parsePixelPolygon(x).length >= 3).length;
