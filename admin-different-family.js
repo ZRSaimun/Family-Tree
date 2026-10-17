@@ -5,7 +5,7 @@
   if (!cfg.enabled || !cfg.supabaseUrl || !cfg.supabaseAnonKey) return;
 
   const $ = id => document.getElementById(id);
-  const esc = (v='') => String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const esc = (v='') => String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot',"'":'&#39;'}[c]));
   const lang = () => document.documentElement.lang === 'bn' ? 'bn' : 'en';
 
   let record = null;
@@ -84,7 +84,7 @@
 
   function applyTransform(){
     const world=$('dfWorld');
-    if(world) world.style.transform=`translate(${panX}px,${panY}px) scale(${scale})`;
+    if(world) world.style.transform=`translate3d(${panX}px,${panY}px,0) scale(${scale})`;
     const out=$('dfZoomReadout');
     if(out) out.textContent=`${Math.round(scale*100)}%`;
   }
@@ -92,11 +92,13 @@
   function fit(){
     const viewport=$('dfViewport'), world=$('dfWorld'), stage=$('dfStage');
     if(!viewport||!world||!stage) return;
+    drag=null;
+    viewport.classList.remove('dragging');
     scale=1; panX=0; panY=0; applyTransform();
     requestAnimationFrame(()=>{
       const sw=Math.max(stage.scrollWidth, stage.getBoundingClientRect().width);
       const sh=Math.max(stage.scrollHeight, stage.getBoundingClientRect().height);
-      const vw=viewport.clientWidth-50, vh=viewport.clientHeight-70;
+      const vw=Math.max(200,viewport.clientWidth-50), vh=Math.max(200,viewport.clientHeight-70);
       scale=Math.max(.34,Math.min(1, vw/sw, vh/sh));
       panX=Math.max(24,(viewport.clientWidth-sw*scale)/2);
       panY=34;
@@ -128,9 +130,11 @@
   function open(){
     if(!record) return;
     active=true;
+    drag=null;
     document.body.classList.add('df-mode');
     $('treeZoom')?.classList.add('df-main-hidden');
     $('dfWorkspace')?.classList.add('show');
+    $('dfWorkspace')?.setAttribute('aria-hidden','false');
     $('differentFamilyBtn')?.classList.add('active');
     render();
     setTimeout(fit,50);
@@ -138,30 +142,61 @@
 
   function close(){
     active=false;
+    drag=null;
+    $('dfViewport')?.classList.remove('dragging');
     document.body.classList.remove('df-mode');
     $('treeZoom')?.classList.remove('df-main-hidden');
     $('dfWorkspace')?.classList.remove('show');
+    $('dfWorkspace')?.setAttribute('aria-hidden','true');
     $('differentFamilyBtn')?.classList.remove('active');
   }
 
   function wirePan(){
     const viewport=$('dfViewport');
     if(!viewport) return;
+
+    const stopDrag=(e)=>{
+      if(!drag) return;
+      if(e?.pointerId != null && drag.pointerId !== e.pointerId) return;
+      try{
+        if(viewport.hasPointerCapture?.(drag.pointerId)) viewport.releasePointerCapture(drag.pointerId);
+      }catch(_){ }
+      drag=null;
+      viewport.classList.remove('dragging');
+    };
+
     viewport.addEventListener('pointerdown',e=>{
-      if(e.target.closest('button,.df-card')) return;
-      drag={x:e.clientX,y:e.clientY,px:panX,py:panY};
-      viewport.setPointerCapture?.(e.pointerId);
+      if(!active) return;
+      if(e.pointerType==='mouse' && e.button!==0) return;
+      if(e.target.closest('button,.df-card,.df-canvas-bar')) return;
+      e.preventDefault();
+      drag={pointerId:e.pointerId,x:e.clientX,y:e.clientY,px:panX,py:panY};
+      try{viewport.setPointerCapture?.(e.pointerId);}catch(_){ }
       viewport.classList.add('dragging');
     });
+
     viewport.addEventListener('pointermove',e=>{
-      if(!drag) return;
+      if(!drag || drag.pointerId!==e.pointerId) return;
+      if(e.pointerType==='mouse' && (e.buttons & 1)===0){
+        stopDrag(e);
+        return;
+      }
       panX=drag.px+(e.clientX-drag.x);
       panY=drag.py+(e.clientY-drag.y);
       applyTransform();
     });
-    const end=()=>{drag=null;viewport.classList.remove('dragging');};
-    viewport.addEventListener('pointerup',end);
-    viewport.addEventListener('pointercancel',end);
+
+    viewport.addEventListener('pointerup',stopDrag);
+    viewport.addEventListener('pointercancel',stopDrag);
+    viewport.addEventListener('lostpointercapture',()=>{
+      drag=null;
+      viewport.classList.remove('dragging');
+    });
+    window.addEventListener('blur',()=>{
+      drag=null;
+      viewport.classList.remove('dragging');
+    });
+
     viewport.addEventListener('wheel',e=>{
       if(!active) return;
       if(e.ctrlKey||e.metaKey){e.preventDefault();zoom(e.deltaY<0?.08:-.08);}
