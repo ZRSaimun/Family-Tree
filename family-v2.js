@@ -182,39 +182,6 @@
   function closeProfile(){ $('profilePanel').classList.remove('open'); $('profilePanel').setAttribute('aria-hidden','true'); $('profileBackdrop').classList.remove('show'); }
 
   function applyZoom(){ $('treeZoom').style.zoom=state.zoom; $('zoomReadout').textContent=`${Math.round(state.zoom*100)}%`; }
-  // Presentation borrows the real canvas; always restore the visitor's view.
-  let presentationSnapshot=null;
-  window.FAMILY_TREE_PRESENTATION={
-    begin(){
-      if(presentationSnapshot)return;
-      const c=$('familyCanvas');
-      presentationSnapshot={allExpanded:state.allExpanded,open:new Set(state.open),closed:new Set(state.closed),focusId:state.focusId,query:state.query,zoom:state.zoom,left:c.scrollLeft,top:c.scrollTop};
-      state.allExpanded=true;state.open.clear();state.closed.clear();state.focusId=null;state.query='';render();
-    },
-    focus(ids){
-      if(!presentationSnapshot)this.begin();
-      state.lang=document.documentElement.lang==='bn'?'bn':'en';
-      const c=$('familyCanvas'),cards=ids.map(id=>document.querySelector('[data-person-id="'+CSS.escape(id)+'"]')).filter(Boolean);
-      if(!cards.length)return;
-      const rects=cards.map(card=>card.getBoundingClientRect()), cr=c.getBoundingClientRect();
-      const left=Math.min(...rects.map(r=>r.left)),right=Math.max(...rects.map(r=>r.right)),top=Math.min(...rects.map(r=>r.top)),bottom=Math.max(...rects.map(r=>r.bottom));
-      const factor=Math.min((cr.width-64)/Math.max(1,right-left),(cr.height-64)/Math.max(1,bottom-top));
-      state.zoom=Math.max(.12,Math.min(.95,state.zoom*factor));applyZoom();
-      requestAnimationFrame(()=>{
-        const rs=cards.map(card=>card.getBoundingClientRect()),v=c.getBoundingClientRect();
-        const x=(Math.min(...rs.map(r=>r.left))+Math.max(...rs.map(r=>r.right)))/2;
-        const y=(Math.min(...rs.map(r=>r.top))+Math.max(...rs.map(r=>r.bottom)))/2;
-        c.scrollTo({left:c.scrollLeft+x-v.left-v.width/2,top:c.scrollTop+y-v.top-v.height/2,behavior:'instant'});
-        c.querySelectorAll('.presentation-tree-focus').forEach(e=>e.classList.remove('presentation-tree-focus'));cards.forEach(e=>e.classList.add('presentation-tree-focus'));
-      });
-    },
-    restore(){
-      if(!presentationSnapshot)return;const saved=presentationSnapshot;presentationSnapshot=null;
-      Object.assign(state,{allExpanded:saved.allExpanded,open:saved.open,closed:saved.closed,focusId:saved.focusId,query:saved.query,zoom:saved.zoom});render();
-      requestAnimationFrame(()=>{$('familyCanvas').scrollLeft=saved.left;$('familyCanvas').scrollTop=saved.top;});
-    }
-  };
-
   function setZoom(delta){ state.zoom=Math.min(1.35,Math.max(.42,Math.round((state.zoom+delta)*100)/100)); applyZoom(); }
   function centerCanvas(){ const c=$('familyCanvas'); c.scrollLeft=Math.max(0,(c.scrollWidth-c.clientWidth)/2); c.scrollTop=0; }
   function centerPerson(id){

@@ -41,7 +41,7 @@
 
   const state={
     active:false, paused:false, timer:null, raf:null, startedAt:0, duration:12000,
-    speed:1, tourIndex:-1, queue:[], sceneNo:0, lastTypes:[], recentKeys:[], current:null, people:[], byId:new Map(), parent:new Map(), depth:new Map(), branch:new Map(), root:null,
+    speed:1, tourIndex:-1, sceneNo:0, lastTypes:[], recentKeys:[], current:null, people:[], byId:new Map(), parent:new Map(), depth:new Map(), branch:new Map(), root:null,
     particles:[], ctx:null, canvas:null, width:0, height:0, dpr:1, themeIndex:0
   };
 
@@ -61,15 +61,6 @@
       childrenOf(p).forEach(c=>walk(c,p,depth+1,b));
     };
     if(state.root) walk(state.root);
-    // Generation order retains original sibling order without inventing birth order.
-    state.people.sort((a,b)=>state.depth.get(a.id)-state.depth.get(b.id));
-    state.queue=[];
-    for(const d of [...new Set(state.people.map(p=>state.depth.get(p.id)))]){
-      const group=state.people.filter(p=>state.depth.get(p.id)===d);
-      for(let i=0;i<group.length;i+=5)state.queue.push({kind:'tree',generation:d,ids:group.slice(i,i+5).map(p=>p.id)});
-    }
-    state.people.forEach(p=>state.queue.push({kind:'family',personId:p.id}));
-
   }
 
   function lineage(p){
@@ -107,7 +98,7 @@
         <div class="cinema-progress"><i id="cinemaProgress"></i></div>
         <div class="cinema-controls" id="cinemaControls">
           <button id="cinemaPause" type="button">Pause</button>
-          <button id="cinemaPrevious" type="button">Previous</button>\n          <button id="cinemaNext" type="button">Next</button><button id="cinemaStories" type="button">Family stories</button>
+          <button id="cinemaPrevious" type="button">Previous</button>\n          <button id="cinemaNext" type="button">Next</button>
           <button id="cinemaSpeed" type="button">Speed: Cinematic</button>
           <button id="cinemaLang" type="button">বাংলা</button>
           <button id="cinemaExit" type="button">Exit</button>
@@ -118,7 +109,6 @@
     $('cinemaPause').addEventListener('click',togglePause);
     $('cinemaNext').addEventListener('click',()=>nextScene(true));
     $('cinemaPrevious').addEventListener('click',previousScene);
-    $('cinemaStories').addEventListener('click',()=>{state.tourIndex=state.queue.findIndex(x=>x.kind==='family')-1;nextScene(true);});
     $('cinemaExit').addEventListener('click',stop);
     $('cinemaLang').addEventListener('click',toggleLang);
     $('cinemaSpeed').addEventListener('click',cycleSpeed);
@@ -129,7 +119,6 @@
     if(!$('cinemaRoot'))return;
     $('cinemaBrandTitle').textContent=t('heritage'); $('cinemaBrandSub').textContent=t('auto'); $('cinemaLiveLabel').textContent=t('live');
     $('cinemaPause').textContent=state.paused?t('play'):t('pause'); $('cinemaNext').textContent=t('next'); $('cinemaExit').textContent=t('exit'); $('cinemaTip').textContent=t('tip');
-    $('cinemaStories').textContent=lang()==='bn'?'পরিবারের গল্প':'Family stories';
     $('cinemaPrevious').textContent=lang()==='bn'?'পূর্ববর্তী':'Previous';
     $('cinemaLang').textContent=lang()==='bn'?'English':'বাংলা';
     const speedLabel=state.speed===0.72?t('relaxed'):state.speed===1.28?t('lively'):t('cinematic'); $('cinemaSpeed').textContent=`${t('speed')}: ${speedLabel}`;
@@ -164,7 +153,6 @@
     nextScene(true);
   }
   function stop(){
-    returnTreeCanvas();window.FAMILY_TREE_PRESENTATION?.restore();
     state.active=false;state.paused=false;clearTimeout(state.timer);cancelAnimationFrame(state.raf);state.timer=null;
     const root=$('cinemaRoot');if(root){root.classList.remove('active');root.setAttribute('aria-hidden','true');}
     document.body.classList.remove('cinema-open');
@@ -186,36 +174,32 @@
   }
   function makeScene(){
     state.sceneNo++;
-    state.tourIndex=(state.tourIndex+1)%state.queue.length;
+    state.tourIndex=(state.tourIndex+1)%state.people.length;
     return sceneOrderedTour();
   }
 
   function previousScene(){
     if(!state.active)return;
-    state.tourIndex=(state.tourIndex-2+state.queue.length)%state.queue.length;
+    state.tourIndex=(state.tourIndex-2+state.people.length)%state.people.length;
     nextScene(true);
   }
 
-  let treeHome=null,treeMarker=null;
-  function returnTreeCanvas(){
-    const canvas=$('familyCanvas');if(treeMarker?.parentNode&&canvas)treeMarker.replaceWith(canvas);treeMarker=null;treeHome=null;
-  }
   function sceneOrderedTour(){
-    const step=state.queue[state.tourIndex];
-    if(step.kind==='tree')return {type:'ordered-tour',key:'tree:'+state.tourIndex,duration:6500,theme:'ocean',html:`
-      <div class="tree-canvas-tour"><div class="tree-tour-caption"><b>${lang()==='bn'?'আসল পারিবারিক গাছের সফর':'Original family tree tour'}</b> · ${esc(t('generation'))} ${step.generation}<small>${step.ids.map(id=>esc(name(state.byId.get(id)))).join(' · ')}</small></div><div id="cinemaTreeMount"></div></div>`};
-    const p=state.byId.get(step.personId),par=state.parent.get(p.id),kids=childrenOf(p),sp=spouses(p),path=lineage(p);
-    const familyNumber=state.people.findIndex(x=>x.id===p.id)+1;
-    return {type:'ordered-tour',key:'family:'+p.id,duration:Math.min(20000,9000+kids.length*800),theme:nextTheme(),html:`
-      <div class="cinema-scene family-story">
-        <div class="cinema-eyebrow">${lang()==='bn'?'পরিবারের গল্প':'Family stories'} · ${familyNumber} / ${state.people.length} · ${esc(t('generation'))} ${state.depth.get(p.id)}</div>
-        <h1>${esc(name(p))}</h1><p class="story-lineage">${path.map(x=>esc(name(x))).join(' → ')}</p>
-        <p>${par?(lang()==='bn'?'নথিভুক্ত অভিভাবক: ':'Recorded parent: ')+esc(name(par)):esc(t('roots'))}</p>
-        ${sp.length?`<p>${esc(t('spouse'))}: ${esc(sp.join(' · '))}</p>`:''}
-        <p class="story-note">${esc(note(p))|| (lang()==='bn'?'জীবন ও অবদানের বিস্তারিত এখনো নথিভুক্ত নেই।':'Life and contribution details have not yet been recorded.')}</p>
-        <h2>${lang()==='bn'?'নামে নথিভুক্ত সন্তান':'Named children in this tree'}: ${kids.length}</h2>
-        <div class="story-children">${kids.map((child,i)=>`<article style="--i:${i}"><small>${i+1}</small><b>${esc(name(child))}</b><span>${lang()==='bn'?'নথিভুক্ত সন্তান':'Recorded children'}: ${childrenOf(child).length}</span></article>`).join('')||`<p>${lang()==='bn'?'সন্তানের নাম এই গাছে নথিভুক্ত নেই।':'No children are named in this tree.'}</p>`}</div>
-        <small>${lang()==='bn'?'সন্তানের তালিকা পারিবারিক নথির ক্রমে; জন্মক্রম নিশ্চিত করে না।':'Children follow the family record order; this does not establish birth order.'}</small>
+    const p=state.people[state.tourIndex], par=state.parent.get(p.id), sp=spouses(p);
+    const path=lineage(p);
+    return {type:'ordered-tour',key:'tour:'+p.id,duration:7000,theme:nextTheme(),html:`
+      <div class="cinema-scene ordered-tour">
+        <nav class="tour-roster" aria-label="${lang()==='bn'?'পুরো পরিবারের ক্রম':'Full family sequence'}">
+          ${state.people.map((person,i)=>`<button type="button" data-tour-index="${i}" ${i===state.tourIndex?'aria-current="step"':''}><small>${i+1} · ${esc(t('generation'))} ${state.depth.get(person.id)}</small><b>${esc(name(person))}</b></button>`).join('')}
+        </nav>
+        <article class="tour-person">
+          <div class="cinema-eyebrow">${lang()==='bn'?'পুরো পরিবারের প্রদর্শনী':'Full family tour'} · ${state.tourIndex+1} / ${state.people.length}</div>
+          <h1>${esc(name(p))}</h1>
+          <p>${esc(t('generation'))} ${state.depth.get(p.id)}</p>
+          <p class="tour-lineage">${path.map(x=>esc(name(x))).join(' → ')}</p>
+          ${note(p)?`<p>${esc(note(p))}</p>`:''}
+          <div class="spot-meta">${par?`<span><small>${lang()==='bn'?'নথিভুক্ত অভিভাবক':'Recorded parent'}</small><b>${esc(name(par))}</b></span>`:''}${sp.length?`<span><small>${esc(t('spouse'))}</small><b>${esc(sp.join(' • '))}</b></span>`:''}</div>
+        </article>
       </div>`};
   }
 
@@ -279,18 +263,10 @@
   }
 
   function renderCurrent(){
-    returnTreeCanvas();
     if(!state.current)return; if(state.current.type==='ordered-tour')state.current=sceneOrderedTour(); const stage=$('cinemaStage'); if(!stage)return;
-    const old=stage.firstElementChild;if(old){old.setAttribute('aria-hidden','true');old.classList.add('scene-out');setTimeout(()=>{if(old.parentNode)old.remove();},900);}
+    const old=stage.firstElementChild;if(old){old.classList.add('scene-out');setTimeout(()=>{if(old.parentNode)old.remove();},900);}
     const holder=document.createElement('div');holder.className='cinema-scene-wrap';holder.innerHTML=state.current.html;stage.appendChild(holder);
     $('cinemaRoot').dataset.theme=state.current.theme;
-    const step=state.queue[state.tourIndex];
-    if(step?.kind==='tree'){
-      window.FAMILY_TREE_PRESENTATION?.begin();
-      const canvas=$('familyCanvas'),mount=holder.querySelector('#cinemaTreeMount');
-      if(canvas&&mount){treeMarker=document.createComment('presentation-canvas-home');canvas.before(treeMarker);mount.appendChild(canvas);requestAnimationFrame(()=>window.FAMILY_TREE_PRESENTATION?.focus(step.ids));}
-    }else window.FAMILY_TREE_PRESENTATION?.restore();
-
     requestAnimationFrame(()=>{
       holder.classList.add('scene-in');
       holder.querySelector('[aria-current="step"]')?.scrollIntoView({block:'center',behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'});
