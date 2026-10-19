@@ -41,7 +41,7 @@
 
   const state={
     active:false, paused:false, timer:null, raf:null, startedAt:0, duration:12000,
-    speed:1, sceneNo:0, lastTypes:[], recentKeys:[], current:null, people:[], byId:new Map(), parent:new Map(), depth:new Map(), branch:new Map(), root:null,
+    speed:1, tourIndex:-1, sceneNo:0, lastTypes:[], recentKeys:[], current:null, people:[], byId:new Map(), parent:new Map(), depth:new Map(), branch:new Map(), root:null,
     particles:[], ctx:null, canvas:null, width:0, height:0, dpr:1, themeIndex:0
   };
 
@@ -98,7 +98,7 @@
         <div class="cinema-progress"><i id="cinemaProgress"></i></div>
         <div class="cinema-controls" id="cinemaControls">
           <button id="cinemaPause" type="button">Pause</button>
-          <button id="cinemaNext" type="button">Next</button>
+          <button id="cinemaPrevious" type="button">Previous</button>\n          <button id="cinemaNext" type="button">Next</button>
           <button id="cinemaSpeed" type="button">Speed: Cinematic</button>
           <button id="cinemaLang" type="button">বাংলা</button>
           <button id="cinemaExit" type="button">Exit</button>
@@ -108,6 +108,7 @@
 
     $('cinemaPause').addEventListener('click',togglePause);
     $('cinemaNext').addEventListener('click',()=>nextScene(true));
+    $('cinemaPrevious').addEventListener('click',previousScene);
     $('cinemaExit').addEventListener('click',stop);
     $('cinemaLang').addEventListener('click',toggleLang);
     $('cinemaSpeed').addEventListener('click',cycleSpeed);
@@ -118,6 +119,7 @@
     if(!$('cinemaRoot'))return;
     $('cinemaBrandTitle').textContent=t('heritage'); $('cinemaBrandSub').textContent=t('auto'); $('cinemaLiveLabel').textContent=t('live');
     $('cinemaPause').textContent=state.paused?t('play'):t('pause'); $('cinemaNext').textContent=t('next'); $('cinemaExit').textContent=t('exit'); $('cinemaTip').textContent=t('tip');
+    $('cinemaPrevious').textContent=lang()==='bn'?'পূর্ববর্তী':'Previous';
     $('cinemaLang').textContent=lang()==='bn'?'English':'বাংলা';
     const speedLabel=state.speed===0.72?t('relaxed'):state.speed===1.28?t('lively'):t('cinematic'); $('cinemaSpeed').textContent=`${t('speed')}: ${speedLabel}`;
     const b=$('cinemaLaunch'); if(b){b.querySelector('b').textContent=t('launch');b.querySelector('small').textContent=t('launchSub');}
@@ -127,6 +129,7 @@
     if(!state.active)return;
     if(e.key==='Escape'){e.preventDefault();stop();}
     else if(e.key===' '){e.preventDefault();togglePause();}
+    else if(e.key==='ArrowLeft'){e.preventDefault();previousScene();}
     else if(e.key==='ArrowRight'){e.preventDefault();nextScene(true);}
   }
 
@@ -143,7 +146,7 @@
 
   async function start(){
     indexData(); if(!state.root)return;
-    state.active=true;state.paused=false;state.sceneNo=0;state.lastTypes=[];state.recentKeys=[];
+    state.active=true;state.paused=false;state.tourIndex=-1;state.sceneNo=0;state.lastTypes=[];state.recentKeys=[];
     const root=$('cinemaRoot');root.classList.add('active');root.setAttribute('aria-hidden','false');document.body.classList.add('cinema-open');
     updateLabels(); resizeCanvas(); initParticles(); animateParticles();
     try{if(root.requestFullscreen&&!document.fullscreenElement)await root.requestFullscreen();}catch(_){ }
@@ -171,9 +174,33 @@
   }
   function makeScene(){
     state.sceneNo++;
-    if(state.sceneNo===1 || state.sceneNo%19===0)return sceneGenesis();
-    const type=pickType();
-    return ({genesis:sceneGenesis,branch:sceneBranch,path:scenePath,spotlight:sceneSpotlight,constellation:sceneConstellation,generation:sceneGeneration,family:sceneFamily,mosaic:sceneMosaic,flow:sceneFlow}[type])();
+    state.tourIndex=(state.tourIndex+1)%state.people.length;
+    return sceneOrderedTour();
+  }
+
+  function previousScene(){
+    if(!state.active)return;
+    state.tourIndex=(state.tourIndex-2+state.people.length)%state.people.length;
+    nextScene(true);
+  }
+
+  function sceneOrderedTour(){
+    const p=state.people[state.tourIndex], par=state.parent.get(p.id), sp=spouses(p);
+    const path=lineage(p);
+    return {type:'ordered-tour',key:'tour:'+p.id,duration:7000,theme:nextTheme(),html:`
+      <div class="cinema-scene ordered-tour">
+        <nav class="tour-roster" aria-label="${lang()==='bn'?'পুরো পরিবারের ক্রম':'Full family sequence'}">
+          ${state.people.map((person,i)=>`<button type="button" data-tour-index="${i}" ${i===state.tourIndex?'aria-current="step"':''}><small>${i+1} · ${esc(t('generation'))} ${state.depth.get(person.id)}</small><b>${esc(name(person))}</b></button>`).join('')}
+        </nav>
+        <article class="tour-person">
+          <div class="cinema-eyebrow">${lang()==='bn'?'পুরো পরিবারের প্রদর্শনী':'Full family tour'} · ${state.tourIndex+1} / ${state.people.length}</div>
+          <h1>${esc(name(p))}</h1>
+          <p>${esc(t('generation'))} ${state.depth.get(p.id)}</p>
+          <p class="tour-lineage">${path.map(x=>esc(name(x))).join(' → ')}</p>
+          ${note(p)?`<p>${esc(note(p))}</p>`:''}
+          <div class="spot-meta">${par?`<span><small>${lang()==='bn'?'নথিভুক্ত অভিভাবক':'Recorded parent'}</small><b>${esc(name(par))}</b></span>`:''}${sp.length?`<span><small>${esc(t('spouse'))}</small><b>${esc(sp.join(' • '))}</b></span>`:''}</div>
+        </article>
+      </div>`};
   }
 
   function sceneGenesis(){
@@ -236,11 +263,17 @@
   }
 
   function renderCurrent(){
-    if(!state.current)return; const stage=$('cinemaStage'); if(!stage)return;
+    if(!state.current)return; if(state.current.type==='ordered-tour')state.current=sceneOrderedTour(); const stage=$('cinemaStage'); if(!stage)return;
     const old=stage.firstElementChild;if(old){old.classList.add('scene-out');setTimeout(()=>{if(old.parentNode)old.remove();},900);}
     const holder=document.createElement('div');holder.className='cinema-scene-wrap';holder.innerHTML=state.current.html;stage.appendChild(holder);
     $('cinemaRoot').dataset.theme=state.current.theme;
-    requestAnimationFrame(()=>holder.classList.add('scene-in'));
+    requestAnimationFrame(()=>{
+      holder.classList.add('scene-in');
+      holder.querySelector('[aria-current="step"]')?.scrollIntoView({block:'center',behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'});
+    });
+    holder.querySelectorAll('[data-tour-index]').forEach(button=>button.addEventListener('click',()=>{
+      state.tourIndex=Number(button.dataset.tourIndex)-1; nextScene(true);
+    }));
   }
   function nextScene(manual=false){
     if(!state.active)return; clearTimeout(state.timer);state.current=makeScene();state.duration=state.current.duration;renderCurrent();state.startedAt=performance.now();updateProgress();
