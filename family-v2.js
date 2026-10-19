@@ -204,7 +204,7 @@
         const rs=cards.map(card=>card.getBoundingClientRect()),v=c.getBoundingClientRect();
         const x=(Math.min(...rs.map(r=>r.left))+Math.max(...rs.map(r=>r.right)))/2;
         const y=(Math.min(...rs.map(r=>r.top))+Math.max(...rs.map(r=>r.bottom)))/2;
-        c.scrollTo({left:c.scrollLeft+x-v.left-v.width/2,top:c.scrollTop+y-v.top-v.height/2,behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'});
+        c.scrollTo({left:c.scrollLeft+x-v.left-v.width/2,top:c.scrollTop+y-v.top-v.height/2,behavior:'instant'});
         c.querySelectorAll('.presentation-tree-focus').forEach(e=>e.classList.remove('presentation-tree-focus'));cards.forEach(e=>e.classList.add('presentation-tree-focus'));
       });
     },
