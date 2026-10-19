@@ -395,6 +395,25 @@
         <div class="land-note" style="margin:12px 16px 0"><b>${bn() ? 'অস্থায়ী টেস্ট মোড:' : 'Temporary test mode:'}</b> ${bn() ? 'সব জমির হিসাব দেখা এবং যোগ/সম্পাদনা করা যাচ্ছে। Delete বন্ধ আছে।' : 'All land records are visible and can be added/edited. Delete remains disabled.'}</div>
         <div class="land-grid">
           <aside class="land-panel land-sidebar">
+            <details class="land-family-summary" style="padding:14px;border-bottom:1px solid #ddd;background:#fffaf0">
+              <summary style="cursor:pointer;font-weight:800;color:#173a63;min-height:32px">${bn() ? 'পরিবার-নিশ্চিত জমির সারসংক্ষেপ · ১৮ অক্টোবর ২০২৬' : 'Family-confirmed land summary · 18 October 2026'}</summary>
+              <p>${bn() ? 'পরিবার নিশ্চিত করেছে; সরকারি নথির যাচাই পৃথক। নিচের মোটগুলো আলাদা পরিধির—যোগ করবেন না। এগুলো নিচের পৃথক জমির রেকর্ডের অতিরিক্ত নয়।' : 'Confirmed by the family; official documentary verification is separate. Totals have different scopes: do not add them together or add them to the individual records below.'}</p>
+              <h3>${bn() ? 'ডা. আবুল হাশেমের সকল পুত্র যৌথভাবে' : 'All sons of Dr. Abul Hasem collectively'}</h3>
+              <dl>
+                <dt><b>251 ${bn() ? 'শতক' : 'decimals'}</b></dt><dd>${bn() ? 'শুধু ভীমপুর মৌজা/খতিয়ানে তাঁদের মোট জমি। কারও একক অংশ নয়।' : 'Their family-confirmed total in Bhimpur mouza/khatian only. Not one person’s share.'}</dd>
+                <dt><b>32 ${bn() ? 'শতক' : 'decimals'}</b></dt><dd>${bn() ? 'উঠানসহ বাড়ি, পুকুর বাদে।' : 'Homestead including courtyard, excluding pond.'}</dd>
+                <dt><b>41 ${bn() ? 'শতক' : 'decimals'}</b></dt><dd>${bn() ? 'পুকুরসহ বাড়ির মোট। ৩২ শতক এর মধ্যে অন্তর্ভুক্ত।' : 'Homestead including pond. The 32 decimals is included within this 41.'}</dd>
+              </dl>
+              <h3>${bn() ? 'আব্দুল হক · আফাজ মিয়ার পুত্র' : 'Abdul Haq · son of Afaz Mia'}</h3>
+              <dl>
+                <dt><b>113 ${bn() ? 'শতক' : 'decimals'}</b></dt><dd>${bn() ? 'সব স্থানের জমি মিলিয়ে পরিবারের বলা মোট; পৃথক হিসাবের যোগফল এখনো মেলানো হয়নি।' : 'Family-confirmed total across all his land; itemized amounts have not yet been reconciled.'}</dd>
+                <dt><b>31 ${bn() ? 'শতক' : 'decimals'}</b></dt><dd>${bn() ? 'উঠানসহ বাড়ি, পুকুর বাদে; ১১৩-এর অংশ, অতিরিক্ত নয়।' : 'Homestead including courtyard, excluding pond; part of 113, not additional.'}</dd>
+              </dl>
+              <h3>${bn() ? 'আব্দুর নূর (বাবুল) · প্রজন্ম ৬' : 'Abdur Nur (Babul Mia) · Generation 6'}</h3>
+              <p>${bn() ? 'আব্দুল হকের জ্যেষ্ঠ পুত্র। দামাইল্লা/ধামালিয়া মৌজায় তাঁর অতিরিক্ত ১০ শতক পরিবারের বক্তব্য অনুযায়ী। এটি ৩৫+১৯-এর মধ্যে নয় এবং আব্দুল হকের নামে যোগ করা হয়নি।' : 'Eldest son of Abdul Haq. His family-confirmed additional 10 decimals in Dhamaliya is separate from 35+19 and is not attributed to Abdul Haq.'}</p>
+              <p><b>${bn() ? 'পরিবারের ব্যাখ্যার অপেক্ষায়' : 'Awaiting family clarification'}</b>: ${bn() ? 'স্ল্যাশ চিহ্নের অর্থ (২/৮, ০/২.৫, ৪/০, ০/২), ২৬ (২৪) ও ৯ (১০), এবং আব্দুল হকের পৃথক হিসাবের মধ্যে কোনগুলো একই জমির অংশ।' : 'Slash notation (2/8, 0/2.5, 4/0, 0/2), alternative figures 26 (24) and 9 (10), and overlaps within Abdul Haq’s itemized account.'}</p>
+              <p>${bn() ? 'আগের নির্দিষ্ট হিসাব বহাল: উত্তর বাড়ি ৬, ব্যক্তিগত বাড়ির হিসাব ৬.৫, বুরাইজ্জা ১.৭৫ শতক। পরের আনুমানিক সংখ্যা দিয়ে এগুলো বদলানো হয়নি। ধামালিয়ার পরিচয়, জরিপ ও JL এখনো সরকারি যাচাই হয়নি।' : 'Original precise entries retained: Uttor Bari 6, individual homestead entry 6.5, Buraijja 1.75 decimals. Later rounded estimates do not replace them. Dhamaliya’s official identity, survey and JL remain unverified.'}</p>
+            </details>
             <div class="land-filter">
               <input id="publicLandSearch" type="search" placeholder="${bn() ? 'নাম, মালিক, দাগ, খতিয়ান খুঁজুন…' : 'Search name, owner, dag, khatian…'}">
               <div class="land-filter-row"><select id="publicLandMouza"></select><select id="publicLandStatus"></select></div>
