@@ -8,3 +8,5 @@
 .tour-person{align-self:center;max-height:100%;overflow-y:auto;min-width:0;padding:12px}.tour-person h1{font-size:clamp(26px,5vw,68px);overflow-wrap:anywhere}.tour-lineage{font-size:14px!important;line-height:1.8!important;opacity:.75}
 @media(max-width:700px){.cinema-scene.ordered-tour{grid-template-columns:1fr;grid-template-rows:minmax(100px,25%) minmax(0,1fr);gap:10px;padding:95px 16px 120px}.tour-roster{border-right:0;border-bottom:1px solid #ffffff26}.tour-person{align-self:start}.tour-roster button{padding:8px}.tour-person .spot-meta{flex-wrap:wrap}.cinema-controls{max-width:96vw;flex-wrap:wrap;justify-content:center}}
 @media(prefers-reduced-motion:reduce){.tour-roster{scroll-behavior:auto}}
+
+.cinema-scene.ordered-tour{height:calc(100dvh - 152px);min-height:0}.tour-roster{max-height:calc(100dvh - 340px)}@media(max-width:700px){.tour-roster{max-height:22dvh}}
