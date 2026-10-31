@@ -23,10 +23,28 @@
       <p class="av-explanation" aria-live="polite"></p>
       <details><summary>${t('How this is calculated','হিসাবটি কীভাবে করা হয়')}</summary><p>${t('Two parents, four grandparents: generation g has 2^g slots. The same person can occupy several slots (pedigree collapse), so slots are not unique people. The golden lines are an illustration, not verified family relationships. Dense generations use a sample of lines.','দুইজন পিতা-মাতা, চারজন দাদা-দাদি ও নানা-নানি: g প্রজন্মে ২^g স্থান। একই ব্যক্তি একাধিক স্থানে থাকতে পারেন, তাই এটি আলাদা মানুষের সংখ্যা নয়। সোনালি রেখাগুলো ধারণামূলক, যাচাইকৃত পারিবারিক সম্পর্ক নয়। বড় প্রজন্মে কিছু নমুনা রেখা দেখানো হয়।')}</p><p>${t('No birth date or historical year is assumed. This visual does not calculate how many times a specific ancestor appears in this family.','কোনো জন্মতারিখ বা ঐতিহাসিক সাল ধরে নেওয়া হয়নি। এই পরিবারে নির্দিষ্ট পূর্বপুরুষ কতবার এসেছেন তা এখানে গণনা করা হয় না।')}</p><a href="https://isogg.org/wiki/Pedigree_collapse" target="_blank" rel="noopener">${t('Read about pedigree collapse ↗','পূর্বপুরুষের পুনরাবৃত্তি সম্পর্কে পড়ুন ↗')}</a></details>`;
     host.querySelector('.ff-heading').after(card);
-    let g = 2, timer = null, origin = false, journeyDialog = null;
+    let g = 2, timer = null, origin = true, journeyDialog = null, eraIndex = 0;
+    const eras = [
+      {en:'Adam & Hawwa',bn:'আদম ও হাওয়া',detailEn:'Shared origin of humanity in Islamic belief. The calendar year and the number of generations to this person are not established.',detailBn:'ইসলামী বিশ্বাসে মানবজাতির অভিন্ন উৎস। সঠিক সাল ও এই ব্যক্তি পর্যন্ত প্রজন্মের সংখ্যা প্রতিষ্ঠিত নয়।',url:'https://quran.com/4/1',source:'Qur’an 4:1; Bukhari 3340'},
+      {en:'Era of Nuh (AS)',bn:'নূহ (আ.)-এর যুগ',detailEn:'The Qur’an describes Nuh being sent to his people. This marker has no assigned calendar date or generation number.',detailBn:'কুরআনে নূহকে তাঁর সম্প্রদায়ের কাছে পাঠানোর বর্ণনা আছে। এই চিহ্নের কোনো সাল বা প্রজন্মসংখ্যা নির্ধারণ করা হয়নি।',url:'https://quran.com/7/59',source:'Qur’an 7:59'},
+      {en:'Ibrahim & Ismail (AS)',bn:'ইবরাহিম ও ইসমাইল (আ.)',detailEn:'The Qur’an describes Ibrahim and Ismail raising the foundations of the House. This is a selected religious-era marker, not a complete genealogy.',detailBn:'কুরআনে ইবরাহিম ও ইসমাইলের কাবার ভিত্তি নির্মাণের বর্ণনা আছে। এটি একটি নির্বাচিত ধর্মীয় যুগচিহ্ন, সম্পূর্ণ বংশতালিকা নয়।',url:'https://quran.com/2/127',source:'Qur’an 2:127'},
+      {en:'Era of Musa (AS)',bn:'মুসা (আ.)-এর যুগ',detailEn:'The Qur’an recounts the story of Musa. Placement here follows the conventional broad sequence, not a measured date or a direct parent–child relationship.',detailBn:'কুরআনে মুসার ঘটনা বর্ণিত হয়েছে। এখানে প্রচলিত সামগ্রিক ক্রম দেখানো হয়েছে, নির্দিষ্ট সাল বা সরাসরি পিতা-সন্তানের সম্পর্ক নয়।',url:'https://legacy.quran.com/20/9-111',source:'Qur’an 20:9 onwards'},
+      {en:'Dawud & Sulaiman (AS)',bn:'দাউদ ও সুলাইমান (আ.)',detailEn:'The Qur’an describes Sulaiman succeeding Dawud. The spacing of these era markers is schematic and does not measure elapsed years.',detailBn:'কুরআনে দাউদের পরে সুলাইমানের উত্তরাধিকারের বর্ণনা আছে। যুগচিহ্নগুলোর দূরত্ব চিত্রের সুবিধার জন্য, অতিবাহিত বছরের মাপ নয়।',url:'https://quran.com/27/16',source:'Qur’an 27:16'},
+      {en:'Era of Isa (AS)',bn:'ঈসা (আ.)-এর যুগ',detailEn:'The Qur’an identifies Isa as the son of Maryam. This does not identify him as an ancestor of the selected person.',detailBn:'কুরআনে ঈসাকে মরিয়মের পুত্র বলা হয়েছে। এর অর্থ এই নয় যে তিনি নির্বাচিত ব্যক্তির পূর্বপুরুষ হিসেবে শনাক্ত হয়েছেন।',url:'https://quran.com/3/45',source:'Qur’an 3:45'},
+      {en:'Prophet Muhammad ﷺ',bn:'নবী মুহাম্মদ ﷺ',detailEn:'Conventionally dated c. 570/571–632 CE. The Qur’an calls him the seal of the prophets. Dates come from historical scholarship, not a Qur’anic calendar date.',detailBn:'প্রচলিত ঐতিহাসিক সময়কাল আনুমানিক ৫৭০/৫৭১–৬৩২ খ্রিস্টাব্দ। কুরআনে তাঁকে শেষ নবী বলা হয়েছে। সালগুলো ঐতিহাসিক গবেষণা থেকে, কুরআনে দেওয়া ক্যালেন্ডারের সাল নয়।',url:'https://quran.com/33/40',history:'https://elmi.hbku.edu.qa/en/publications/muhammad-ca-570571-632-ce/',source:'Qur’an 33:40; historical biography'},
+      {en:'Imam al-Bukhari · 810–870 CE',bn:'ইমাম বুখারি · ৮১০–৮৭০ খ্রি.',detailEn:'Muhammad ibn Ismail al-Bukhari compiled Sahih al-Bukhari. He was a hadith scholar, not a prophet. This marker does not claim he was an ancestor of this family.',detailBn:'মুহাম্মদ ইবনে ইসমাইল আল-বুখারি সহিহ বুখারি সংকলন করেন। তিনি হাদিসের আলেম, নবী নন। এই চিহ্ন তাঁকে এই পরিবারের পূর্বপুরুষ বলে দাবি করে না।',url:'https://www.encyclopedia.com/religion/encyclopedias-almanacs-transcripts-and-maps/bukhari-al-810-870',source:'Encyclopedia of Religion · historical biography'},
+      {en:'Selected family member',bn:'নির্বাচিত পরিবারের সদস্য',detailEn:'This person belongs to the recorded family tree. A named genealogical chain linking this family to the historical figures above has not been established.',detailBn:'এই ব্যক্তি নথিভুক্ত পারিবারিক বৃক্ষের সদস্য। ওপরের ঐতিহাসিক ব্যক্তিদের সঙ্গে এই পরিবারের নামসহ বংশগত সংযোগ প্রতিষ্ঠিত হয়নি।',source:'Existing family record'}
+    ];
     const canvas = card.querySelector('canvas'), ctx = canvas.getContext('2d');
     const slider = card.querySelector('[type=range]'), overlap = card.querySelector('[type=checkbox]');
     card.querySelector('.av-person').textContent = document.querySelector('#profileContent h2')?.textContent || t('This person','এই ব্যক্তি');
+    const markers=document.createElement('div');markers.className='av-era-markers';
+    eras.slice(1,-1).forEach((era,i)=>{const button=document.createElement('button');button.type='button';button.className='av-era-marker';button.dataset.avEra=String(i+1);button.style.top=`${19+i*10}%`;button.textContent=t(era.en,era.bn);button.onclick=()=>{stop();eraIndex=i+1;update();};markers.append(button);});
+    card.querySelector('.av-scene').append(markers);
+    const eraDetail=document.createElement('div');eraDetail.className='av-era-detail';eraDetail.setAttribute('aria-live','polite');card.querySelector('.av-scene').after(eraDetail);
+    const guide=document.createElement('p');guide.className='av-era-guide';guide.textContent=t('Selected eras · schematic spacing, not a dated genealogy. Tap a label to read its source.','নির্বাচিত যুগ · চিত্রের দূরত্ব সালভিত্তিক বংশতালিকা নয়। সূত্র পড়তে নামে চাপুন।');card.querySelector('.av-scene').before(guide);
+    const references=document.createElement('details');references.className='av-chart-references';
+    references.innerHTML=`<summary>${t('About the supplied family charts','দেওয়া বংশতালিকা সম্পর্কে')}</summary><p>${t('The Genesis chart describes Biblical tradition; the Majestic Islam post republishes an internet chart; QuranExplorer provides a general overview. They are reading references, not proof of every parent–child link. Only individually checked Qur’an/hadith references are used for the selected markers. Missing links remain unknown.','জেনেসিসের চিত্র বাইবেলের ঐতিহ্য নিয়ে; ম্যাজেস্টিক ইসলাম ইন্টারনেটের একটি চিত্র পুনঃপ্রকাশ করেছে; কুরআনএক্সপ্লোরার সামগ্রিক পরিচিতি দিয়েছে। এগুলো পাঠ্যসূত্র, প্রতিটি পিতা-সন্তানের সম্পর্কের প্রমাণ নয়। নির্বাচিত চিহ্নে আলাদাভাবে যাচাই করা কুরআন ও হাদিসের সূত্র ব্যবহার করা হয়েছে। অনুপস্থিত সংযোগ অজানা রাখা হয়েছে।')}</p><a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/Genealogies_of_Genesis">Genealogies of Genesis ↗</a><br><a target="_blank" rel="noopener" href="https://majesticislam.wordpress.com/2011/07/06/family-tree-from-adam-to-prophet-muhammed-as/">Majestic Islam chart ↗</a><br><a target="_blank" rel="noopener" href="https://www.quranexplorer.com/blog/Education-In-The-Light-Of-Sunnah-And-Qura%27an/Family_tree_of_prophets_in_Islam_Adam_(AS)_to_Muhammad_SAW">QuranExplorer overview ↗</a>`;card.append(references);
     function stop() { clearInterval(timer); timer = null; card.querySelector('[data-av=play]').textContent = t('▶ Play journey','▶ যাত্রা দেখুন'); }
     function openJourney() {
       if(journeyDialog) return;
@@ -59,15 +77,14 @@
         ctx.lineWidth=.65;ctx.strokeStyle='rgba(255,203,119,.42)';
         for(let i=0;i<128;i++){
           const waist=width*.07+width*.86*i/127, target=ends[i%2];
-          ctx.beginPath();ctx.moveTo(centre,rootY);ctx.bezierCurveTo(centre,rootY-65,waist,260,waist,205);ctx.bezierCurveTo(waist,150,target,100,target,57);ctx.stroke();
+          ctx.beginPath();ctx.moveTo(centre,rootY);ctx.bezierCurveTo(centre,rootY-65,waist,height*.62,waist,height*.48);ctx.bezierCurveTo(waist,height*.32,target,100,target,57);ctx.stroke();
         }
         ctx.shadowColor='#ffc867';ctx.shadowBlur=18;ctx.fillStyle='#fff1c9';
         for(const x of ends){ctx.beginPath();ctx.arc(x,57,4,0,Math.PI*2);ctx.fill();}
         ctx.beginPath();ctx.arc(centre,rootY,4,0,Math.PI*2);ctx.fill();ctx.shadowBlur=0;
         ctx.font='bold 13px system-ui';ctx.textAlign='center';ctx.fillStyle='#ffe1a1';
         ctx.fillText(t('Adam (AS)','আদম (আ.)'),ends[0],29);ctx.fillText(t('Hawwa','হাওয়া'),ends[1],29);
-        ctx.fillStyle='#160e07';ctx.fillRect(8,165,width-16,35);ctx.fillStyle='#ffe1a1';ctx.font='12px system-ui';
-        ctx.fillText(t('⋯ Unknown generations ⋯','⋯ প্রজন্মের সংখ্যা অজানা ⋯'),centre,187);
+        ctx.fillStyle='#ffe1a1';ctx.font='11px system-ui';ctx.fillText(t('⋯ Intervening generations unknown ⋯','⋯ মধ্যবর্তী প্রজন্ম অজানা ⋯'),centre,90);
         return;
       }
       function x(level,i,n) {
@@ -92,17 +109,25 @@
       if(g<=2){ctx.font='12px system-ui';ctx.textAlign='center';ctx.fillStyle='#f8deb1';const labels=g===1?[t('Parent','পিতা/মাতা'),t('Parent','পিতা/মাতা')]:[t('Grandparent','নানা/নানি'),t('Grandparent','নানা/নানি'),t('Grandparent','দাদা/দাদি'),t('Grandparent','দাদা/দাদি')];labels.forEach((label,i)=>ctx.fillText(label,x(g,i,labels.length),12));}
     }
     function update() {
+      card.querySelector('h4').textContent=origin?t('Our shared origin & the eras of history','আমাদের অভিন্ন উৎস ও ইতিহাসের যুগ'):t('How many ancestors lead to you?','আপনাকে পৃথিবীতে আনতে কতজন পূর্বপুরুষ লেগেছে?');
       card.querySelector('.av-origin-note').hidden=!origin;
       card.querySelector('.av-origin-button').textContent=origin?t('← Return to generation calculator','← প্রজন্মের হিসাবে ফিরুন'):t('☪ Islamic origin: Adam & Hawwa','☪ ইসলামী উৎস: আদম ও হাওয়া');
-      card.querySelector('.av-buttons').hidden=origin;
+      card.querySelector('.av-buttons').hidden=false;
+      card.classList.toggle('av-history-mode',origin);markers.hidden=!origin;eraDetail.hidden=!origin;guide.hidden=!origin;references.hidden=!origin;
       card.querySelector('.av-slider-label').hidden=origin;
       card.querySelector('.av-overlap').hidden=origin;
       card.querySelector('.av-slots').hidden=origin;
       card.querySelector('.av-explanation').hidden=origin;
       if(origin){
-        card.querySelector('.av-generation').textContent=t('Shared origin in Islamic belief','ইসলামী বিশ্বাসে অভিন্ন উৎস');
+        const era=eras[eraIndex];
+        card.querySelector('.av-generation').textContent=t(`Era journey · ${eraIndex+1} / ${eras.length}`,`যুগের যাত্রা · ${number(eraIndex+1)} / ${number(eras.length)}`);
+        eraDetail.replaceChildren();const heading=document.createElement('strong');heading.textContent=t(era.en,era.bn);const paragraph=document.createElement('p');paragraph.textContent=t(era.detailEn,era.detailBn);eraDetail.append(heading,paragraph);
+        if(era.url){const link=document.createElement('a');link.href=era.url;link.target='_blank';link.rel='noopener';link.textContent=era.source+' ↗';eraDetail.append(link);}
+        if(era.history){const link=document.createElement('a');link.href=era.history;link.target='_blank';link.rel='noopener';link.textContent=t(' · Historical dates ↗',' · ঐতিহাসিক সাল ↗');eraDetail.append(link);}
+        markers.querySelectorAll('button').forEach(button=>{const active=Number(button.dataset.avEra)===eraIndex;button.classList.toggle('active',active);if(active)button.setAttribute('aria-current','step');else button.removeAttribute('aria-current');});
+        card.querySelector('[data-av=back]').disabled=eraIndex===0;card.querySelector('[data-av=next]').disabled=eraIndex===eras.length-1;
         card.querySelector('.av-count').textContent=t('Adam & Hawwa','আদম ও হাওয়া');
-        canvas.setAttribute('aria-label',t('Symbolic Islamic origin: Adam and Hawwa, unknown intervening generations, then this person. No date or generation count is claimed.','প্রতীকী ইসলামী উৎস: আদম ও হাওয়া, অজানা মধ্যবর্তী প্রজন্ম, এরপর এই ব্যক্তি। কোনো সাল বা প্রজন্মসংখ্যা দাবি করা হয়নি।'));
+        canvas.setAttribute('aria-label',t('Symbolic Islamic origin: Adam and Hawwa, unknown intervening generations, then this person. Era markers are context, not documented ancestors; no date or generation count is claimed for the gaps.','প্রতীকী ইসলামী উৎস: আদম ও হাওয়া, অজানা মধ্যবর্তী প্রজন্ম, এরপর এই ব্যক্তি। কোনো সাল বা প্রজন্মসংখ্যা দাবি করা হয়নি।'));
         draw();return;
       }
       slider.value=g;slider.setAttribute('aria-valuetext',`${g} ${t('generations','প্রজন্ম')}`);
@@ -118,12 +143,18 @@
       if(action==='origin'){stop();origin=!origin;update();return;}
       if(action==='play'){
         openJourney();
+        if(origin){
+          if(timer){stop();return;}if(eraIndex===eras.length-1)eraIndex=0;
+          if(reduced()){eraIndex=Math.min(eras.length-1,eraIndex+1);update();return;}
+          card.querySelector('[data-av=play]').textContent=t('Ⅱ Pause','Ⅱ থামান');
+          timer=setInterval(()=>{if(!card.isConnected||document.hidden){stop();return;}eraIndex=Math.min(eras.length-1,eraIndex+1);update();if(eraIndex===eras.length-1)stop();},1800);update();return;
+        }
         if(timer){stop();return;}
         if(reduced()){g=g===33?1:Math.min(33,g+1);update();return;}
         if(g===33)g=1;
         card.querySelector('[data-av=play]').textContent=t('Ⅱ Pause','Ⅱ থামান');
         timer=setInterval(()=>{if(!card.isConnected || document.hidden){stop();return;}g=Math.min(33,g+1);update();if(g===33)stop();},650);
-      }else{stop();g=Math.max(1,Math.min(33,g+(action==='next'?1:-1)));update();}
+      }else{stop();if(origin){eraIndex=Math.max(0,Math.min(eras.length-1,eraIndex+(action==='next'?1:-1)));update();return;}g=Math.max(1,Math.min(33,g+(action==='next'?1:-1)));update();}
     });
     const resize = new ResizeObserver(()=>{if(card.isConnected)draw();else{resize.disconnect();stop();}});resize.observe(card);
     const removal = new MutationObserver(()=>{if(!card.isConnected){stop();resize.disconnect();removal.disconnect();}});removal.observe(document.getElementById('profileContent'),{childList:true,subtree:true});
