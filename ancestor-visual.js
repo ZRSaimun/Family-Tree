@@ -35,6 +35,28 @@
       {en:'Imam al-Bukhari · 810–870 CE',bn:'ইমাম বুখারি · ৮১০–৮৭০ খ্রি.',detailEn:'Muhammad ibn Ismail al-Bukhari compiled Sahih al-Bukhari. He was a hadith scholar, not a prophet. This marker does not claim he was an ancestor of this family.',detailBn:'মুহাম্মদ ইবনে ইসমাইল আল-বুখারি সহিহ বুখারি সংকলন করেন। তিনি হাদিসের আলেম, নবী নন। এই চিহ্ন তাঁকে এই পরিবারের পূর্বপুরুষ বলে দাবি করে না।',url:'https://www.encyclopedia.com/religion/encyclopedias-almanacs-transcripts-and-maps/bukhari-al-810-870',source:'Encyclopedia of Religion · historical biography'},
       {en:'Selected family member',bn:'নির্বাচিত পরিবারের সদস্য',detailEn:'This person belongs to the recorded family tree. A named genealogical chain linking this family to the historical figures above has not been established.',detailBn:'এই ব্যক্তি নথিভুক্ত পারিবারিক বৃক্ষের সদস্য। ওপরের ঐতিহাসিক ব্যক্তিদের সঙ্গে এই পরিবারের নামসহ বংশগত সংযোগ প্রতিষ্ঠিত হয়নি।',source:'Existing family record'}
     ];
+    const timelineEntries = [
+      ['Selected family member','নির্বাচিত পরিবারের সদস্য','Present record','Your family record; not linked to the historical figures below.'],
+      ['Prophet Muhammad ﷺ','নবী মুহাম্মদ ﷺ','c. 570/571–632 CE','Historical estimate; Qur’an 33:40 and early biography.'],
+      ['Isa (AS)','ঈসা (আ.)','c. 1 BCE–30/33 CE','Historical estimate; Qur’an 3:45.'],
+      ['Yahya (AS)','ইয়াহইয়া (আ.)','Date not established','Qur’an 19:7; no reliable calendar range.'],
+      ['Zakariya (AS)','জাকারিয়া (আ.)','Date not established','Qur’an 19:2–11; no reliable calendar range.'],
+      ['Yunus (AS)','ইউনুস (আ.)','Date not established','Qur’an 37:139–148; no reliable calendar range.'],
+      ['Sulaiman (AS)','সুলাইমান (আ.)','c. 10th century BCE','Broad historical estimate; Qur’an 27:16.'],
+      ['Dawud (AS)','দাউদ (আ.)','c. 10th century BCE','Broad historical estimate; Qur’an 27:16.'],
+      ['Musa (AS)','মুসা (আ.)','c. 14th–13th century BCE','Historical estimate; Qur’an 20:9–111.'],
+      ['Yusuf (AS)','ইউসুফ (আ.)','Date not established','Qur’an 12; no reliable calendar range.'],
+      ['Yaqub (AS)','ইয়াকুব (আ.)','Date not established','Qur’an 12:6; no reliable calendar range.'],
+      ['Ishaq (AS)','ইসহাক (আ.)','Date not established','Qur’an 11:71–73; no reliable calendar range.'],
+      ['Ismail (AS)','ইসমাইল (আ.)','Date not established','Qur’an 2:127; no reliable calendar range.'],
+      ['Ibrahim (AS)','ইবরাহিম (আ.)','Often placed in 2nd millennium BCE','Traditional historical estimate; exact date is not established.'],
+      ['Lut (AS)','লূত (আ.)','Date not established','Qur’an 11:77–83; no reliable calendar range.'],
+      ['Salih (AS)','সালেহ (আ.)','Date not established','Qur’an 7:73; no reliable calendar range.'],
+      ['Hud (AS)','হুদ (আ.)','Date not established','Qur’an 7:65; no reliable calendar range.'],
+      ['Nuh (AS)','নূহ (আ.)','Date not established','Qur’an 7:59; no reliable calendar range.'],
+      ['Idris (AS)','ইদরিস (আ.)','Date not established','Qur’an 19:56–57; no reliable calendar range.'],
+      ['Adam & Hawwa (AS)','আদম ও হাওয়া (আ.)','Calendar date unknown','Qur’an 4:1; shared origin of humanity, not a dated genealogy.']
+    ];
     const canvas = card.querySelector('canvas'), ctx = canvas.getContext('2d');
     const slider = card.querySelector('[type=range]'), overlap = card.querySelector('[type=checkbox]');
     card.querySelector('.av-person').textContent = document.querySelector('#profileContent h2')?.textContent || t('This person','এই ব্যক্তি');
@@ -138,6 +160,9 @@
         const era=eras[eraIndex];
         card.querySelector('.av-generation').textContent=t(`Era journey · ${eraIndex+1} / ${eras.length}`,`যুগের যাত্রা · ${number(eraIndex+1)} / ${number(eras.length)}`);
         eraDetail.replaceChildren();const heading=document.createElement('strong');heading.textContent=t(era.en,era.bn);const paragraph=document.createElement('p');paragraph.textContent=t(era.detailEn,era.detailBn);eraDetail.append(heading,paragraph);
+        const timeline=document.createElement('div');timeline.className='av-timeline';timeline.setAttribute('aria-label',t('Historical timeline','ঐতিহাসিক টাইমলাইন'));
+        timelineEntries.forEach((entry,index)=>{const item=document.createElement('article');item.className='av-timeline-item';if(index===eras.length-1-eraIndex)item.classList.add('active');const title=document.createElement('strong');title.textContent=t(entry[0],entry[1]);const date=document.createElement('span');date.textContent=entry[2];const note=document.createElement('p');note.textContent=entry[3];item.append(title,date,note);timeline.append(item);});
+        eraDetail.append(timeline);
         if(era.url){const link=document.createElement('a');link.href=era.url;link.target='_blank';link.rel='noopener';link.textContent=era.source+' ↗';eraDetail.append(link);}
         if(era.history){const link=document.createElement('a');link.href=era.history;link.target='_blank';link.rel='noopener';link.textContent=t(' · Historical dates ↗',' · ঐতিহাসিক সাল ↗');eraDetail.append(link);}
         markers.querySelectorAll('button').forEach(button=>{const active=Number(button.dataset.avEra)===eraIndex;button.classList.toggle('active',active);if(active)button.setAttribute('aria-current','step');else button.removeAttribute('aria-current');});
