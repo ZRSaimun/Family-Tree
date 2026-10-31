@@ -73,18 +73,34 @@
       const glow = ctx.createRadialGradient(centre,rootY,0,centre,rootY,70);
       glow.addColorStop(0,'#ffd98577');glow.addColorStop(1,'#ffd98500');ctx.fillStyle=glow;ctx.fillRect(0,rootY-70,width,100);
       if(origin) {
-        const ends=[centre-width*.19,centre+width*.19];
-        ctx.lineWidth=.65;ctx.strokeStyle='rgba(255,203,119,.42)';
-        for(let i=0;i<128;i++){
-          const waist=width*.07+width*.86*i/127, target=ends[i%2];
-          ctx.beginPath();ctx.moveTo(centre,rootY);ctx.bezierCurveTo(centre,rootY-65,waist,height*.62,waist,height*.48);ctx.bezierCurveTo(waist,height*.32,target,100,target,57);ctx.stroke();
+        // The origin journey is deliberately progressive: the selected person is
+        // one point, then each Play/Next step adds the next parent layer. It is a
+        // symbolic illustration, never a claim that every intermediate link is
+        // documented.
+        const depth=Math.max(1,Math.min(8,eraIndex+1));
+        const root=[centre,rootY];
+        const points=[root];
+        for(let level=1;level<=depth;level++){
+          const n=2**level, y=rootY-(rootY-topY)*level/Math.max(depth,4);
+          const spread=Math.min(width*.44,width*(.08+.075*level));
+          const parents=points.filter(point=>point[2]===level-1);
+          for(let i=0;i<n;i++){
+            const x=centre-spread+(2*spread)*(i+.5)/n;
+            const parent=parents[Math.floor(i/2)]||root;
+            ctx.beginPath();ctx.moveTo(parent[0],parent[1]);
+            ctx.bezierCurveTo(parent[0],parent[1]-(parent[1]-y)*.55,x,y+(parent[1]-y)*.45,x,y);
+            ctx.strokeStyle=level===depth?'rgba(255,206,127,.9)':'rgba(255,203,119,.48)';
+            ctx.lineWidth=level===depth?1.1:.7;ctx.stroke();
+            points.push([x,y,level]);
+          }
         }
         ctx.shadowColor='#ffc867';ctx.shadowBlur=18;ctx.fillStyle='#fff1c9';
-        for(const x of ends){ctx.beginPath();ctx.arc(x,57,4,0,Math.PI*2);ctx.fill();}
+        points.filter(point=>point[2]===depth).forEach(point=>{ctx.beginPath();ctx.arc(point[0],point[1],depth<4?3:1.7,0,Math.PI*2);ctx.fill();});
         ctx.beginPath();ctx.arc(centre,rootY,4,0,Math.PI*2);ctx.fill();ctx.shadowBlur=0;
         ctx.font='bold 13px system-ui';ctx.textAlign='center';ctx.fillStyle='#ffe1a1';
-        ctx.fillText(t('Adam (AS)','আদম (আ.)'),ends[0],29);ctx.fillText(t('Hawwa','হাওয়া'),ends[1],29);
-        ctx.fillStyle='#ffe1a1';ctx.font='11px system-ui';ctx.fillText(t('⋯ Intervening generations unknown ⋯','⋯ মধ্যবর্তী প্রজন্ম অজানা ⋯'),centre,90);
+        if(depth>=7){ctx.fillText(t('Adam (AS)','আদম (আ.)'),centre-width*.16,topY+8);ctx.fillText(t('Hawwa','হাওয়া'),centre+width*.16,topY+8);}
+        ctx.fillStyle='#ffe1a1';ctx.font='11px system-ui';
+        ctx.fillText(t(`${depth} layer${depth===1?'':'s'} revealed · intervening generations unknown`,`${number(depth)} স্তর প্রকাশিত · মধ্যবর্তী প্রজন্ম অজানা`),centre,Math.max(90,topY+28));
         return;
       }
       function x(level,i,n) {
