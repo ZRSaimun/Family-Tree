@@ -23,7 +23,7 @@
       <p class="av-explanation" aria-live="polite"></p>
       <details><summary>${t('How this is calculated','হিসাবটি কীভাবে করা হয়')}</summary><p>${t('Two parents, four grandparents: generation g has 2^g slots. The same person can occupy several slots (pedigree collapse), so slots are not unique people. The golden lines are an illustration, not verified family relationships. Dense generations use a sample of lines.','দুইজন পিতা-মাতা, চারজন দাদা-দাদি ও নানা-নানি: g প্রজন্মে ২^g স্থান। একই ব্যক্তি একাধিক স্থানে থাকতে পারেন, তাই এটি আলাদা মানুষের সংখ্যা নয়। সোনালি রেখাগুলো ধারণামূলক, যাচাইকৃত পারিবারিক সম্পর্ক নয়। বড় প্রজন্মে কিছু নমুনা রেখা দেখানো হয়।')}</p><p>${t('No birth date or historical year is assumed. This visual does not calculate how many times a specific ancestor appears in this family.','কোনো জন্মতারিখ বা ঐতিহাসিক সাল ধরে নেওয়া হয়নি। এই পরিবারে নির্দিষ্ট পূর্বপুরুষ কতবার এসেছেন তা এখানে গণনা করা হয় না।')}</p><a href="https://isogg.org/wiki/Pedigree_collapse" target="_blank" rel="noopener">${t('Read about pedigree collapse ↗','পূর্বপুরুষের পুনরাবৃত্তি সম্পর্কে পড়ুন ↗')}</a></details>`;
     host.querySelector('.ff-heading').after(card);
-    let g = 2, timer = null, origin = true, journeyDialog = null, eraIndex = 0;
+    let g = 2, timer = null, origin = true, journeyDialog = null, eraIndex = 8;
     const eras = [
       {en:'Adam & Hawwa',bn:'আদম ও হাওয়া',detailEn:'Shared origin of humanity in Islamic belief. The calendar year and the number of generations to this person are not established.',detailBn:'ইসলামী বিশ্বাসে মানবজাতির অভিন্ন উৎস। সঠিক সাল ও এই ব্যক্তি পর্যন্ত প্রজন্মের সংখ্যা প্রতিষ্ঠিত নয়।',url:'https://quran.com/4/1',source:'Qur’an 4:1; Bukhari 3340'},
       {en:'Era of Nuh (AS)',bn:'নূহ (আ.)-এর যুগ',detailEn:'The Qur’an describes Nuh being sent to his people. This marker has no assigned calendar date or generation number.',detailBn:'কুরআনে নূহকে তাঁর সম্প্রদায়ের কাছে পাঠানোর বর্ণনা আছে। এই চিহ্নের কোনো সাল বা প্রজন্মসংখ্যা নির্ধারণ করা হয়নি।',url:'https://quran.com/7/59',source:'Qur’an 7:59'},
@@ -77,7 +77,7 @@
         // one point, then each Play/Next step adds the next parent layer. It is a
         // symbolic illustration, never a claim that every intermediate link is
         // documented.
-        const depth=Math.max(1,Math.min(8,eraIndex+1));
+        const depth=Math.max(1,Math.min(8,eras.length-eraIndex));
         const root=[centre,rootY];
         const points=[root];
         for(let level=1;level<=depth;level++){
@@ -100,7 +100,7 @@
         ctx.font='bold 13px system-ui';ctx.textAlign='center';ctx.fillStyle='#ffe1a1';
         if(depth>=7){ctx.fillText(t('Adam (AS)','আদম (আ.)'),centre-width*.16,topY+8);ctx.fillText(t('Hawwa','হাওয়া'),centre+width*.16,topY+8);}
         ctx.fillStyle='#ffe1a1';ctx.font='11px system-ui';
-        ctx.fillText(t(`${depth} layer${depth===1?'':'s'} revealed · intervening generations unknown`,`${number(depth)} স্তর প্রকাশিত · মধ্যবর্তী প্রজন্ম অজানা`),centre,Math.max(90,topY+28));
+        ctx.fillText(t(`${depth} layer${depth===1?'':'s'} revealed · historical context, not a proven lineage`,`${number(depth)} স্তর প্রকাশিত · ঐতিহাসিক প্রেক্ষাপট, প্রমাণিত বংশধারা নয়`),centre,Math.max(90,topY+28));
         return;
       }
       function x(level,i,n) {
@@ -160,10 +160,10 @@
       if(action==='play'){
         openJourney();
         if(origin){
-          if(timer){stop();return;}if(eraIndex===eras.length-1)eraIndex=0;
-          if(reduced()){eraIndex=Math.min(eras.length-1,eraIndex+1);update();return;}
+          if(timer){stop();return;}if(eraIndex===0)eraIndex=eras.length-1;
+          if(reduced()){eraIndex=Math.max(0,eraIndex-1);update();return;}
           card.querySelector('[data-av=play]').textContent=t('Ⅱ Pause','Ⅱ থামান');
-          timer=setInterval(()=>{if(!card.isConnected||document.hidden){stop();return;}eraIndex=Math.min(eras.length-1,eraIndex+1);update();if(eraIndex===eras.length-1)stop();},1800);update();return;
+          timer=setInterval(()=>{if(!card.isConnected||document.hidden){stop();return;}eraIndex=Math.max(0,eraIndex-1);update();if(eraIndex===0)stop();},1800);update();return;
         }
         if(timer){stop();return;}
         if(reduced()){g=g===33?1:Math.min(33,g+1);update();return;}
