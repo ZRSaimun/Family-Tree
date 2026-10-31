@@ -16,12 +16,14 @@
       <p class="av-generation"></p><strong class="av-count"></strong><p class="av-slots">${t('theoretical ancestor slots in this generation','এই প্রজন্মে পূর্বপুরুষের তাত্ত্বিক স্থান')}</p>
       <div class="av-scene"><canvas role="img"></canvas><span class="av-person"></span></div>
       <div class="av-buttons"><button type="button" data-av="back">${t('← Back','← পেছনে')}</button><button type="button" data-av="play">${t('▶ Play journey','▶ যাত্রা দেখুন')}</button><button type="button" data-av="next">${t('Next →','পরের →')}</button></div>
+      <button type="button" class="av-origin-button" data-av="origin">${t("☪ Islamic origin: Adam & Hawwa","☪ ইসলামী উৎস: আদম ও হাওয়া")}</button>
+      <div class="av-origin-note" hidden><p>${t("Islamic belief: humanity shares its origin through Adam and Hawwa. Their points represent two people, not one parent. The intervening generations are not known; these lines are symbolic, not a documented family chain.","ইসলামী বিশ্বাস অনুযায়ী মানবজাতির উৎস আদম ও হাওয়া। দুটি বিন্দু দুজন মানুষকে বোঝায়, একজন অভিভাবককে নয়। মধ্যবর্তী প্রজন্মের সংখ্যা জানা নেই; রেখাগুলো প্রতীকী, নথিভুক্ত বংশতালিকা নয়।")}</p><p>${t("Exact year: not established. Generations to this person: unknown. Friday is mentioned in Sahih Muslim 854a; it does not supply a calendar year.","সঠিক সাল: প্রতিষ্ঠিত নয়। এই ব্যক্তি পর্যন্ত প্রজন্মের সংখ্যা: অজানা। সহিহ মুসলিম ৮৫৪ক-তে শুক্রবারের উল্লেখ আছে; কোনো ক্যালেন্ডারের সাল দেওয়া নেই।")}</p><details><summary>${t("Qur’an and sahih hadith sources","কুরআন ও সহিহ হাদিসের সূত্র")}</summary><p>${t("Paraphrase: Qur’an 4:1 describes humanity spreading from a single soul and its mate. Sahih al-Bukhari 3340 identifies Adam as the father of humanity. These establish origin, not a dated genealogy.","ভাবার্থ: কুরআন ৪:১-এ এক সত্তা ও তার সঙ্গিনী থেকে মানবজাতি বিস্তারের কথা আছে। সহিহ বুখারি ৩৩৪০-এ আদমকে মানবজাতির পিতা বলা হয়েছে। এগুলো উৎস বোঝায়, তারিখসহ বংশতালিকা নয়।")}</p><a href="https://quran.com/4/1" target="_blank" rel="noopener">Qur’an 4:1 ↗</a> · <a href="https://sunnah.com/bukhari:3340" target="_blank" rel="noopener">Bukhari 3340 ↗</a> · <a href="https://sunnah.com/muslim:854a" target="_blank" rel="noopener">Muslim 854a ↗</a><p><a href="https://islamqa.info/en/answers/20907" target="_blank" rel="noopener">${t("Scholarly discussion of the unknown chronology ↗","অজানা সময়কাল সম্পর্কে আলেমের আলোচনা ↗")}</a></p></details></div>
       <label class="av-slider-label">${t('Generations back','কত প্রজন্ম আগে')}<input type="range" min="1" max="33" step="1" value="2"></label>
       <label class="av-overlap"><input type="checkbox">${t('Show overlapping ancestry','পূর্বপুরুষের পুনরাবৃত্তি দেখুন')}</label>
       <p class="av-explanation" aria-live="polite"></p>
       <details><summary>${t('How this is calculated','হিসাবটি কীভাবে করা হয়')}</summary><p>${t('Two parents, four grandparents: generation g has 2^g slots. The same person can occupy several slots (pedigree collapse), so slots are not unique people. The golden lines are an illustration, not verified family relationships. Dense generations use a sample of lines.','দুইজন পিতা-মাতা, চারজন দাদা-দাদি ও নানা-নানি: g প্রজন্মে ২^g স্থান। একই ব্যক্তি একাধিক স্থানে থাকতে পারেন, তাই এটি আলাদা মানুষের সংখ্যা নয়। সোনালি রেখাগুলো ধারণামূলক, যাচাইকৃত পারিবারিক সম্পর্ক নয়। বড় প্রজন্মে কিছু নমুনা রেখা দেখানো হয়।')}</p><p>${t('No birth date or historical year is assumed. This visual does not calculate how many times a specific ancestor appears in this family.','কোনো জন্মতারিখ বা ঐতিহাসিক সাল ধরে নেওয়া হয়নি। এই পরিবারে নির্দিষ্ট পূর্বপুরুষ কতবার এসেছেন তা এখানে গণনা করা হয় না।')}</p><a href="https://isogg.org/wiki/Pedigree_collapse" target="_blank" rel="noopener">${t('Read about pedigree collapse ↗','পূর্বপুরুষের পুনরাবৃত্তি সম্পর্কে পড়ুন ↗')}</a></details>`;
     host.querySelector('.ff-heading').after(card);
-    let g = 2, timer = null;
+    let g = 2, timer = null, origin = false;
     const canvas = card.querySelector('canvas'), ctx = canvas.getContext('2d');
     const slider = card.querySelector('[type=range]'), overlap = card.querySelector('[type=checkbox]');
     card.querySelector('.av-person').textContent = document.querySelector('#profileContent h2')?.textContent || t('This person','এই ব্যক্তি');
@@ -34,6 +36,22 @@
       const rootY = height-30, topY = 22, centre = width/2;
       const glow = ctx.createRadialGradient(centre,rootY,0,centre,rootY,70);
       glow.addColorStop(0,'#ffd98577');glow.addColorStop(1,'#ffd98500');ctx.fillStyle=glow;ctx.fillRect(0,rootY-70,width,100);
+      if(origin) {
+        const ends=[centre-width*.19,centre+width*.19];
+        ctx.lineWidth=.65;ctx.strokeStyle='rgba(255,203,119,.42)';
+        for(let i=0;i<128;i++){
+          const waist=width*.07+width*.86*i/127, target=ends[i%2];
+          ctx.beginPath();ctx.moveTo(centre,rootY);ctx.bezierCurveTo(centre,rootY-65,waist,260,waist,205);ctx.bezierCurveTo(waist,150,target,100,target,57);ctx.stroke();
+        }
+        ctx.shadowColor='#ffc867';ctx.shadowBlur=18;ctx.fillStyle='#fff1c9';
+        for(const x of ends){ctx.beginPath();ctx.arc(x,57,4,0,Math.PI*2);ctx.fill();}
+        ctx.beginPath();ctx.arc(centre,rootY,4,0,Math.PI*2);ctx.fill();ctx.shadowBlur=0;
+        ctx.font='bold 13px system-ui';ctx.textAlign='center';ctx.fillStyle='#ffe1a1';
+        ctx.fillText(t('Adam (AS)','আদম (আ.)'),ends[0],29);ctx.fillText(t('Hawwa','হাওয়া'),ends[1],29);
+        ctx.fillStyle='#160e07';ctx.fillRect(8,165,width-16,35);ctx.fillStyle='#ffe1a1';ctx.font='12px system-ui';
+        ctx.fillText(t('⋯ Unknown generations ⋯','⋯ প্রজন্মের সংখ্যা অজানা ⋯'),centre,187);
+        return;
+      }
       function x(level,i,n) {
         const spread = Math.min(.93, .025 + .905*Math.pow(level/g,.72));
         let spreadFactor = 1;
@@ -56,6 +74,19 @@
       if(g<=2){ctx.font='12px system-ui';ctx.textAlign='center';ctx.fillStyle='#f8deb1';const labels=g===1?[t('Parent','পিতা/মাতা'),t('Parent','পিতা/মাতা')]:[t('Grandparent','নানা/নানি'),t('Grandparent','নানা/নানি'),t('Grandparent','দাদা/দাদি'),t('Grandparent','দাদা/দাদি')];labels.forEach((label,i)=>ctx.fillText(label,x(g,i,labels.length),12));}
     }
     function update() {
+      card.querySelector('.av-origin-note').hidden=!origin;
+      card.querySelector('.av-origin-button').textContent=origin?t('← Return to generation calculator','← প্রজন্মের হিসাবে ফিরুন'):t('☪ Islamic origin: Adam & Hawwa','☪ ইসলামী উৎস: আদম ও হাওয়া');
+      card.querySelector('.av-buttons').hidden=origin;
+      card.querySelector('.av-slider-label').hidden=origin;
+      card.querySelector('.av-overlap').hidden=origin;
+      card.querySelector('.av-slots').hidden=origin;
+      card.querySelector('.av-explanation').hidden=origin;
+      if(origin){
+        card.querySelector('.av-generation').textContent=t('Shared origin in Islamic belief','ইসলামী বিশ্বাসে অভিন্ন উৎস');
+        card.querySelector('.av-count').textContent=t('Adam & Hawwa','আদম ও হাওয়া');
+        canvas.setAttribute('aria-label',t('Symbolic Islamic origin: Adam and Hawwa, unknown intervening generations, then this person. No date or generation count is claimed.','প্রতীকী ইসলামী উৎস: আদম ও হাওয়া, অজানা মধ্যবর্তী প্রজন্ম, এরপর এই ব্যক্তি। কোনো সাল বা প্রজন্মসংখ্যা দাবি করা হয়নি।'));
+        draw();return;
+      }
       slider.value=g;slider.setAttribute('aria-valuetext',`${g} ${t('generations','প্রজন্ম')}`);
       card.querySelector('.av-generation').textContent=t(`${g} generations back`,`${number(g)} প্রজন্ম আগে`);
       card.querySelector('.av-count').textContent=number(count(g));
@@ -66,6 +97,7 @@
     slider.oninput=()=>{stop();g=Number(slider.value);update();}; overlap.onchange=update;
     card.addEventListener('click',e=>{
       const action=e.target.closest('[data-av]')?.dataset.av;if(!action)return;
+      if(action==='origin'){stop();origin=!origin;update();return;}
       if(action==='play'){
         if(timer){stop();return;}
         if(reduced()){g=g===33?1:Math.min(33,g+1);update();return;}
