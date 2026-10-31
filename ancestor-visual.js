@@ -35,7 +35,7 @@
       const glow = ctx.createRadialGradient(centre,rootY,0,centre,rootY,70);
       glow.addColorStop(0,'#ffd98577');glow.addColorStop(1,'#ffd98500');ctx.fillStyle=glow;ctx.fillRect(0,rootY-70,width,100);
       function x(level,i,n) {
-        const spread = Math.min(.93, .12 + level/Math.min(g,8)*.81);
+        const spread = Math.min(.93, .025 + .905*Math.pow(level/g,.72));
         let spreadFactor = 1;
         if(overlap.checked && level/g>.6) spreadFactor = Math.max(.025,1-(level/g-.6)/.4);
         return centre + ((i+.5)/n-.5)*width*spread*spreadFactor;
