@@ -34,7 +34,7 @@
   patch('abul-khayer', { en: 'Abul Khayer', bn: 'আবুল খায়ের', noteEn: 'Known as Kari Saheb.', noteBn: 'কারী সাহেব নামে পরিচিত।' });
   patch('ibrahim-boro-boba', { en: 'Ibrahim (boro boba)', bn: 'ইব্রাহিম (boro boba)' });
   patch('yusuf-maijja-boba', { en: 'Yusuf (maijja boba)', bn: 'ইউসুফ (maijja boba)' });
-  patch('choiyeed-ahmed', { en: 'Chhaiyad Ahmed', bn: 'ছৈইয়দ আহমেদ', noteEn: '5 sons and 5 daughters recorded.', noteBn: '৫ ছেলে ও ৫ মেয়ে নথিভুক্ত।' });
+  patch('choiyeed-ahmed', { en: 'Chhaiyad Ahmed', bn: 'ছৈইয়দ আহমেদ', noteEn: '5 sons and 5 daughters recorded.', noteBn: "নামসহ ১০ সন্তান (৫ ছেলে ও ৫ মেয়ে), এবং নাম অজানা ২ সন্তান, যাদের জন্ম ও মৃত্যু যথাক্রমে ১৯৫১ ও ১৯৫৬ সালে।" });
   patch('anowar-son-choiyeed', { en: 'Anowar', bn: 'আনোয়ার' });
   patch('delowar', { en: 'Delowar', bn: 'দেলোয়ার' });
   patch('lokman', { en: 'Lokman', bn: 'লোকমান' });
@@ -83,7 +83,7 @@
   patch('piyara-begum-ledi', { en: 'Peyara Begum Ledi', bn: 'পেয়ারা বেগম লেদি' });
   patch('ayesha', { bn: 'আয়েশা' });
 
-  patch('dr-abul-hasem', { spouses: [{ en: 'Sadia Khatun', bn: 'সাদিয়া খাতুন' }], noteBn: '৫ ছেলে ও ৫ মেয়ে নথিভুক্ত।' });
+  patch('dr-abul-hasem', { spouses: [{ en: 'Sadia Khatun', bn: 'সাদিয়া খাতুন' }], noteBn: "নামসহ ১০ সন্তান (৫ ছেলে ও ৫ মেয়ে), এবং নাম অজানা ২ সন্তান, যাদের জন্ম ও মৃত্যু যথাক্রমে ১৯৫১ ও ১৯৫৬ সালে।" });
   patch('saiful-islam-sobor', { en: 'Saiful Islam Sorob', bn: 'সাইফুল ইসলাম সোরব' });
   patch('redwanul-islam-muna', { en: 'Redwanul Islam Munna', bn: 'রেদওয়ানুল ইসলাম মুন্না' });
   patch('mahbub-alam-mamun', { en: 'Mahbub Alam Masum', bn: 'মাহবুব আলম মাসুম' });
