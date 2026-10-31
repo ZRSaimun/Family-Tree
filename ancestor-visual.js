@@ -23,13 +23,31 @@
       <p class="av-explanation" aria-live="polite"></p>
       <details><summary>${t('How this is calculated','হিসাবটি কীভাবে করা হয়')}</summary><p>${t('Two parents, four grandparents: generation g has 2^g slots. The same person can occupy several slots (pedigree collapse), so slots are not unique people. The golden lines are an illustration, not verified family relationships. Dense generations use a sample of lines.','দুইজন পিতা-মাতা, চারজন দাদা-দাদি ও নানা-নানি: g প্রজন্মে ২^g স্থান। একই ব্যক্তি একাধিক স্থানে থাকতে পারেন, তাই এটি আলাদা মানুষের সংখ্যা নয়। সোনালি রেখাগুলো ধারণামূলক, যাচাইকৃত পারিবারিক সম্পর্ক নয়। বড় প্রজন্মে কিছু নমুনা রেখা দেখানো হয়।')}</p><p>${t('No birth date or historical year is assumed. This visual does not calculate how many times a specific ancestor appears in this family.','কোনো জন্মতারিখ বা ঐতিহাসিক সাল ধরে নেওয়া হয়নি। এই পরিবারে নির্দিষ্ট পূর্বপুরুষ কতবার এসেছেন তা এখানে গণনা করা হয় না।')}</p><a href="https://isogg.org/wiki/Pedigree_collapse" target="_blank" rel="noopener">${t('Read about pedigree collapse ↗','পূর্বপুরুষের পুনরাবৃত্তি সম্পর্কে পড়ুন ↗')}</a></details>`;
     host.querySelector('.ff-heading').after(card);
-    let g = 2, timer = null, origin = false;
+    let g = 2, timer = null, origin = false, journeyDialog = null;
     const canvas = card.querySelector('canvas'), ctx = canvas.getContext('2d');
     const slider = card.querySelector('[type=range]'), overlap = card.querySelector('[type=checkbox]');
     card.querySelector('.av-person').textContent = document.querySelector('#profileContent h2')?.textContent || t('This person','এই ব্যক্তি');
     function stop() { clearInterval(timer); timer = null; card.querySelector('[data-av=play]').textContent = t('▶ Play journey','▶ যাত্রা দেখুন'); }
+    function openJourney() {
+      if(journeyDialog) return;
+      const placeholder=document.createElement('div');placeholder.className='ancestor-visual av-placeholder';placeholder.hidden=true;
+      card.before(placeholder);
+      const dialog=document.createElement('dialog');journeyDialog=dialog;dialog.className='av-journey-dialog';dialog.setAttribute('aria-label',t('Full-window ancestry journey','পুরো পর্দায় বংশধারার যাত্রা'));
+      const close=document.createElement('button');close.type='button';close.className='av-journey-close';close.textContent=t('✕ Close journey','✕ যাত্রা বন্ধ করুন');
+      close.onclick=()=>dialog.close();dialog.append(close,card);document.body.append(dialog);
+      const previousOverflow=document.body.style.overflow;document.body.style.overflow='hidden';
+      dialog.addEventListener('keydown',event=>{
+        if(event.key==='Escape'){event.preventDefault();event.stopPropagation();dialog.close();}
+      });
+      dialog.addEventListener('close',()=>{
+        stop();journeyDialog=null;document.body.style.overflow=previousOverflow;
+        if(placeholder.isConnected){placeholder.replaceWith(card);card.querySelector('[data-av=play]').focus();}else card.remove();
+        dialog.remove();if(card.isConnected)draw();
+      },{once:true});
+      dialog.showModal();close.focus();draw();
+    }
     function draw() {
-      const width = Math.max(240,card.clientWidth), height = 410, ratio = Math.min(devicePixelRatio || 1,2);
+      const width = Math.max(240,card.clientWidth), height = canvas.clientHeight || 410, ratio = Math.min(devicePixelRatio || 1,2);
       canvas.width = width*ratio; canvas.height = height*ratio;
       if (!ctx) return;
       ctx.setTransform(ratio,0,0,ratio,0,0);ctx.clearRect(0,0,width,height);
@@ -99,6 +117,7 @@
       const action=e.target.closest('[data-av]')?.dataset.av;if(!action)return;
       if(action==='origin'){stop();origin=!origin;update();return;}
       if(action==='play'){
+        openJourney();
         if(timer){stop();return;}
         if(reduced()){g=g===33?1:Math.min(33,g+1);update();return;}
         if(g===33)g=1;
