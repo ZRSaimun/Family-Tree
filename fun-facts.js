@@ -52,7 +52,6 @@
     $('personFunFacts')?.remove();
     if (!person || !$('profileContent')?.querySelector('[data-focus-person]')) return;
     const facts = rows.filter(r => r.person_id === person && (admin || (r.approved && r.visibility === 'public')));
-    if (!facts.length && !admin) return;
     selected = Math.max(0,Math.min(selected,facts.length-1));
     const fact = facts[selected], section = document.createElement('section');
     section.id = 'personFunFacts'; section.className = 'fun-facts'; section.setAttribute('aria-label',t('Fun Facts','মজার তথ্য'));
