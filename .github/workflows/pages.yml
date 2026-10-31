@@ -48,6 +48,8 @@ jobs:
           node --check public-land-property.js
           node --check public-cadastral-map.js
           node tests/cadastral-safeguards.cjs
+          node --check fun-facts.js
+          node tests/fun-facts.cjs
           node --check sw.js
 
       - name: Configure Pages

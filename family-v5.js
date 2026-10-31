@@ -33,7 +33,9 @@
       const mod=await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm');
       db=mod.createClient(cfg().supabaseUrl,cfg().supabaseAnonKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
       const res=await db.auth.getSession();session=res.data.session||null;if(session)await checkAdmin();
-      db.auth.onAuthStateChange(async(_e,s)=>{session=s;isAdmin=false;if(s)await checkAdmin();status();if($('v5Modal')?.classList.contains('show'))render('admin');});
+      window.familyCloudClient = db;
+      window.dispatchEvent(new Event('family-cloud-ready'));
+      db.auth.onAuthStateChange(async(_e,s)=>{session=s;isAdmin=false;if(s)await checkAdmin();status();window.dispatchEvent(new Event('family-auth-changed'));if($('v5Modal')?.classList.contains('show'))render('admin');});
       return db;
     }catch(e){console.warn('Family cloud unavailable',e);return null;}
   }

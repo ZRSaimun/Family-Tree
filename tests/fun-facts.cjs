@@ -1,0 +1,13 @@
+const assert=require('node:assert/strict');
+const fs=require('node:fs');
+const sql=fs.readFileSync('supabase/migrations/fun_facts.sql','utf8');
+assert.match(sql,/alter table public.person_fun_facts enable row level security/);
+assert.match(sql,/visibility='public' and approved/);
+assert.match(sql,/with check \(\(select private.is_family_admin\(\)\)\)/);
+assert.match(sql,/security invoker set search_path=''/);
+assert.match(sql,/family-fact-photos',false/);
+const js=fs.readFileSync('fun-facts.js','utf8');
+assert.doesNotMatch(js,/localStorage\.setItem|sessionStorage\.setItem|innerHTML\s*=\s*pick/);
+assert.match(js,/r.approved && r.visibility === 'public'/);
+assert.match(fs.readFileSync('fun-facts.css','utf8'),/prefers-reduced-motion:reduce/);
+console.log('Fun Facts privacy and integration safeguards passed');

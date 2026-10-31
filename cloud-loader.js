@@ -14,7 +14,7 @@
   const addScript = () => {
     if (document.querySelector('script[data-family-cloud-js]')) return;
     const script = document.createElement('script');
-    script.src = 'family-v5.js?v=3';
+    script.src = 'family-v5.js?v=4';
     script.defer = true;
     script.dataset.familyCloudJs = '1';
     script.onerror = () => console.warn('Family cloud tools could not load; the core tree remains available.');

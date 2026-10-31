@@ -106,3 +106,28 @@ Then visit `http://localhost:8000`.
 ## Publish
 
 GitHub Actions deploys the site to GitHub Pages from the `main` branch. Pages deployments are queued rather than cancelling an active publish.
+
+## Person Fun Facts
+
+Open a person profile to read family-approved stories with Previous/Next navigation.
+Sign in through **Cloud connected → Admin** with an existing authorised account,
+then open a profile and select **Add Fun Fact**. Add English and/or Bangla text,
+an optional approved photo and captions, and choose private/public visibility.
+Facts start private and unapproved. Public display requires both Public and Family
+approved. Admins can edit, delete, and move stories earlier/later. No stories are seeded.
+Use only family-supplied information; keep private land/property details in the admin workspace.
+
+`supabase/migrations/fun_facts.sql` records the applied database change. It is a
+one-time migration, not a script to rerun against an already migrated database.
+The new table uses the existing person IDs and admin allow-list. Photos live in a
+private bucket; read policies follow fact visibility and links expire after 120 seconds.
+The existing Different Family and admin land workspace are retained. Temporary public
+land policies and the public test launcher have been retired to restore admin-only access.
+The new feature does not copy snapshot or land data into stories or browser caches.
+
+Validation: JavaScript syntax and safeguard tests; transactional database tests verify
+public/private/draft visibility, non-admin insert rejection, and admin create/edit/reorder.
+Test fixtures are rolled back. The Facebook reel was inaccessible, so the UI uses the
+requested fallback; a screen recording is needed to reproduce its exact effect.
+Physical iPhone/Android testing and a real admin photo upload/delete smoke test remain
+manual acceptance checks. Reduced motion disables the short story reveal animation.
